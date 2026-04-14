@@ -1,4 +1,4 @@
-JSON
+"description": "App para registar trabalhos diários e calcular valores automaticamente",
 {
   "name": "Hell Work",
   "short_name": "HellWork",

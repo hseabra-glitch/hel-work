@@ -4,202 +4,146 @@ index.html
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trabalho Diário</title>
+<title>Hell Work</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 body {
   font-family: Arial;
   background: #111;
-  color: #fff;
-  padding: 10px;
+  color: white;
+  padding: 15px;
 }
 
-h2 { text-align: center; }
+h2 {
+  text-align: center;
+}
 
-select, input {
-  padding: 10px;
-  border-radius: 6px;
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin: 5px 0;
+  border-radius: 8px;
   border: none;
-  margin: 5px;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
 }
 
 button {
-  padding: 10px;
-  margin-top: 5px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
   border-radius: 8px;
   border: none;
   font-weight: bold;
-  cursor: pointer;
 }
 
 .add { background: #00c853; color: white; }
 .pdf { background: #2962ff; color: white; }
-.del { background: #d50000; color: white; }
-.edit { background: #ff9800; color: white; }
 
 .item {
   background: #222;
   padding: 10px;
-  margin-top: 8px;
-  border-radius: 8px;
+  margin-top: 10px;
+  border-radius: 10px;
 }
 
 .total {
-  margin-top: 20px;
-  font-size: 18px;
+  margin-top: 15px;
+  font-size: 20px;
   text-align: center;
 }
 </style>
 </head>
 <body>
-<h2>📅 Trabalho Diário</h2>
-<select id="month">
+  <h2>🔥 Hell Work</h2>
+  <select id="month">
   <option>Janeiro</option>
   <option>Fevereiro</option>
   <option>Março</option>
   <option>Abril</option>
-  <option>Maio</option>
-  <option>Junho</option>
-  <option>Julho</option>
-  <option>Agosto</option>
-  <option>Setembro</option>
-  <option>Outubro</option>
-  <option>Novembro</option>
-  <option>Dezembro</option>
 </select>
-<div class="row">
-  <input id="local" placeholder="Local">
-  <input id="meters" placeholder="Metros">
+<input id="local" placeholder="Local">
+<input id="meters" placeholder="Metros">
 <select id="type">
-    <option value="">Tipo</option>
-    <option value="cassia">Cassia</option>
-    <option value="platines">Platines</option>
-    <option value="mosaic">Mosaic</option>
-    <option value="day">Day (220€)</option>
-  </select>
-</div>
+  <option value="">Tipo</option>
+  <option value="cassia">Cassia</option>
+  <option value="platines">Platines</option>
+  <option value="mosaic">Mosaic</option>
+  <option value="day">Day (220€)</option>
+</select>
 <div id="list"></div>
 <div class="total">
-💰 Total Geral: € <span id="total">0</span>
+💰 Total: € <span id="total">0</span>
 </div>
 <script>
 let data = JSON.parse(localStorage.getItem("work")) || [];
-let editIndex = -1;
 
-// preencher dias 1-31
+// dias
 let daySelect = document.getElementById("day");
 for(let i=1;i<=31;i++){
-  let opt = document.createElement("option");
-  opt.value = i;
-  opt.text = i;
-  daySelect.appendChild(opt);
+  let o = document.createElement("option");
+  o.value=i; o.text=i;
+  daySelect.appendChild(o);
 }
 
-// preços
 function getPrice(type){
-  if(type === "cassia") return 7.5;
-  if(type === "platines") return 7.5;
-  if(type === "mosaic") return 9;
-  if(type === "day") return 220;
+  if(type==="cassia") return 7.5;
+  if(type==="platines") return 7.5;
+  if(type==="mosaic") return 9;
+  if(type==="day") return 220;
   return 0;
 }
 
 function add(){
-  let month = document.getElementById("month").value;
-  let day = document.getElementById("day").value;
-  let local = document.getElementById("local").value;
-  let meters = parseFloat(document.getElementById("meters").value) || 0;
-  let type = document.getElementById("type").value;
+  let item = {
+    month: month.value,
+    day: day.value,
+    local: local.value,
+    meters: parseFloat(meters.value)||0,
+    type: type.value
+  };
 
-  if(!type || !local) return;
+  if(!item.type || !item.local) return;
 
-  let value = type === "day" ? 220 : meters * getPrice(type);
+  item.value = item.type==="day" ? 220 : item.meters*getPrice(item.type);
 
-  let item = { month, day, local, meters, type, value };
-
-  if(editIndex >= 0){
-    data[editIndex] = item;
-    editIndex = -1;
-  } else {
-    data.push(item);
-  }
-
+  data.push(item);
   localStorage.setItem("work", JSON.stringify(data));
-  clear();
-  render();
-}
 
-function clear(){
-  document.getElementById("local").value="";
-  document.getElementById("meters").value="";
-  document.getElementById("type").value="";
+  render();
+
+  local.value="";
+  meters.value="";
+  type.value="";
 }
 
 function render(){
-  let list = document.getElementById("list");
   list.innerHTML="";
-  let total = 0;
+  let total=0;
 
-  data.forEach((d,i)=>{
-    total += d.value;
+  data.forEach(d=>{
+    total+=d.value;
 
-    list.innerHTML += `
+    list.innerHTML+=`
     <div class="item">
       <b>${d.month} - Dia ${d.day}</b><br>
-      ${d.local} | ${d.meters ? d.meters+"m | " : ""}${d.type}<br>
-      💰 €${d.value.toFixed(2)}
-      <div>
-        <button class="edit" onclick="edit(${i})">✏️</button>
-        <button class="del" onclick="remove(${i})">❌</button>
-      </div>
+      ${d.local} | ${d.meters?d.meters+"m | ":""}${d.type}<br>
+      €${d.value.toFixed(2)}
     </div>`;
   });
 
-  document.getElementById("total").innerText = total.toFixed(2);
-}
-
-function remove(i){
-  data.splice(i,1);
-  localStorage.setItem("work", JSON.stringify(data));
-  render();
-}
-
-function edit(i){
-  let d = data[i];
-  document.getElementById("month").value = d.month;
-  document.getElementById("day").value = d.day;
-  document.getElementById("local").value = d.local;
-  document.getElementById("meters").value = d.meters;
-  document.getElementById("type").value = d.type;
-  editIndex = i;
+  document.getElementById("total").innerText=total.toFixed(2);
 }
 
 function exportPDF(){
   const { jsPDF } = window.jspdf;
-  let doc = new jsPDF();
-
+  let doc=new jsPDF();
   let y=10;
-  doc.text("Relatório Trabalho",10,y);
-  y+=10;
-
-  let total=0;
 
   data.forEach(d=>{
-    doc.text(`${d.month} Dia ${d.day} - ${d.local} - €${d.value.toFixed(2)}`,10,y);
+    doc.text(`${d.month} Dia ${d.day} - €${d.value.toFixed(2)}`,10,y);
     y+=8;
-    total+=d.value;
   });
 
-  y+=10;
-  doc.text(`Total: €${total.toFixed(2)}`,10,y);
-
-  doc.save("trabalho.pdf");
+  doc.save("hell-work.pdf");
 }
 
 render();

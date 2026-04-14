@@ -1,6 +1,8 @@
+JSON
 {
   "name": "Hell Work",
   "short_name": "HellWork",
+  "description": "App para registar trabalhos diários e calcular valores automaticamente",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#111111",

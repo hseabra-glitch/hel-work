@@ -167,7 +167,7 @@ function exportPDF(){
   let total = 0;
 
   data.forEach(d=>{
-    doc.text(`${d.month} Dia ${d.day} - ${d.local} - €${d.value.toFixed(2)}`,10,y);
+   doc.text(`${d.month} Dia ${d.day} - ${d.local} - ${d.meters ? d.meters+"m | " : ""}${d.type} - €${d.value.toFixed(2)}`,10,y);
     y += 8;
     total += d.value;
   });

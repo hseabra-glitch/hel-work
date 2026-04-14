@@ -1,10 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hell Work</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
+
+<!-- iPhone fullscreen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hell Work">
+
+<!-- Ícone iPhone -->
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/833/833472.png">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -170,7 +180,7 @@ function exportPDF(){
   let total = 0;
 
   data.forEach(d=>{
-   doc.text(`${d.month} Dia ${d.day} - ${d.local} - ${d.meters ? d.meters+"m | " : ""}${d.type} - €${d.value.toFixed(2)}`,10,y);
+    doc.text(`${d.month} Dia ${d.day} - ${d.local} - ${d.meters ? d.meters+"m | " : ""}${d.type} - €${d.value.toFixed(2)}`,10,y);
     y += 8;
     total += d.value;
   });
@@ -179,6 +189,11 @@ function exportPDF(){
   doc.text(`Total: €${total.toFixed(2)}`,10,y);
 
   doc.save("hell-work.pdf");
+}
+
+// OFFLINE (Service Worker)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
 }
 
 render();

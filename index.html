@@ -106,6 +106,7 @@ function getPrice(type){
   if(type==="platines") return 7.5;
   if(type==="mosaic") return 9;
   if(type==="day") return 220;
+  if(type==="half") return 110;
   return 0;
 }
 
@@ -121,7 +122,7 @@ function add(){
     return;
   }
 
-  const value = type==="day" ? 220 : meters * getPrice(type);
+  const value = (type==="day") ? 220 : (type==="half") ? 110 : meters * getPrice(type);
 
   data.push({month, day, local, meters, type, value});
   localStorage.setItem("work", JSON.stringify(data));

@@ -10,13 +10,14 @@ body{
   background:#111;
   color:#fff;
   font-family:Arial;
+  margin:0;
   padding:10px;
 }
 
 /* HEADER */
 h2{text-align:center;}
 
-/* INPUTS */
+/* SELECT + INPUT */
 select,input{
   width:100%;
   padding:10px;
@@ -35,10 +36,10 @@ button{
   font-weight:bold;
 }
 
-.add{background:#00c853;color:#fff;}
-.pdf{background:#2962ff;color:#fff;}
+.add{background:#00c853;}
+.pdf{background:#2962ff;}
 
-/* CALENDÁRIO */
+/* 🔥 CALENDÁRIO FIXO NO TOPO */
 .calendar{
   display:grid;
   grid-template-columns:repeat(7,1fr);
@@ -56,28 +57,13 @@ button{
 .day.done{background:#0f3d4c;}
 .day.selected{background:#f4c7a1;color:#000;}
 
-/* PREÇOS */
-#settings{
-  background:#222;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:10px;
+/* FORM COMPACTO */
+.block{
+  margin-bottom:8px;
 }
 
-.priceRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin:5px 0;
-}
-
-.priceRow input{
-  width:60px;
-  text-align:center;
-}
-
-.priceRow button{
-  width:35px;
+.checkbox{
+  margin-top:8px;
 }
 
 /* LISTA */
@@ -96,21 +82,6 @@ button{
 
 <h2>🔥 Hell Work</h2>
 
-<button onclick="toggleSettings()">⚙️ Preços</button>
-
-<div id="settings" style="display:none;">
-
-<div class="priceRow">Kasseien <button onclick="change('k',-0.5)">➖</button><input id="k"><button onclick="change('k',0.5)">➕</button></div>
-<div class="priceRow">Platines <button onclick="change('p',-0.5)">➖</button><input id="p"><button onclick="change('p',0.5)">➕</button></div>
-<div class="priceRow">Mosaic <button onclick="change('m',-0.5)">➖</button><input id="m"><button onclick="change('m',0.5)">➕</button></div>
-<div class="priceRow">Juntas <button onclick="change('j',-1)">➖</button><input id="j"><button onclick="change('j',1)">➕</button></div>
-<div class="priceRow">Day <button onclick="change('d',-5)">➖</button><input id="d"><button onclick="change('d',5)">➕</button></div>
-<div class="priceRow">Meio dia <button onclick="change('h',-5)">➖</button><input id="h"><button onclick="change('h',5)">➕</button></div>
-
-<button onclick="savePrices()">Guardar</button>
-
-</div>
-
 <select id="mes">
 <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
 <option>Abril</option><option>Maio</option><option>Junho</option>
@@ -118,23 +89,29 @@ button{
 <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
 </select>
 
-<!-- 🔥 CALENDÁRIO SEMPRE VISÍVEL -->
+<!-- 🔥 CALENDÁRIO -->
 <div class="calendar" id="calendar"></div>
 
 <input id="local" placeholder="Local">
 
-<label><input type="checkbox" value="k"> Kasseien</label>
+<div class="block">
+<label><input type="checkbox" id="kasseien"> Kasseien</label>
 <input id="k_m" placeholder="metros">
+</div>
 
-<label><input type="checkbox" value="p"> Platines</label>
+<div class="block">
+<label><input type="checkbox" id="platines"> Platines</label>
 <input id="p_m" placeholder="metros">
+</div>
 
-<label><input type="checkbox" value="m"> Mosaic</label>
+<div class="block">
+<label><input type="checkbox" id="mosaic"> Mosaic</label>
 <input id="m_m" placeholder="metros">
+</div>
 
-<label><input type="checkbox" value="j"> Juntas</label>
-<label><input type="checkbox" value="d"> Day</label>
-<label><input type="checkbox" value="h"> Meio dia</label>
+<label class="checkbox"><input type="checkbox" id="juntas"> Juntas</label>
+<label class="checkbox"><input type="checkbox" id="day"> Day</label>
+<label class="checkbox"><input type="checkbox" id="meio"> Meio dia</label>
 
 <button class="add" onclick="add()">➕ Adicionar</button>
 <button class="pdf" onclick="pdf()">📄 Exportar PDF</button>
@@ -146,42 +123,19 @@ button{
 <script>
 let dia=null;
 let dados=JSON.parse(localStorage.getItem("dados")||"[]");
-let precos=JSON.parse(localStorage.getItem("precos")||{
-k:7.5,p:7.5,m:9,j:20,d:220,h:110
-});
 
-function toggleSettings(){
-let s=document.getElementById("settings");
-s.style.display=s.style.display==="none"?"block":"none";
-}
-
-function change(id,val){
-let el=document.getElementById(id);
-let n=parseFloat(el.value)||0;
-n+=val;
-if(n<0)n=0;
-el.value=n.toFixed(2);
-}
-
-function savePrices(){
-precos={
-k:+k.value,p:+p.value,m:+m.value,j:+j.value,d:+d.value,h:+h.value
+let precos={
+k:7.5,
+p:7.5,
+m:9,
+j:20,
+d:220,
+h:110
 };
-localStorage.setItem("precos",JSON.stringify(precos));
-alert("Guardado");
-}
-
-function loadPrices(){
-k.value=precos.k;
-p.value=precos.p;
-m.value=precos.m;
-j.value=precos.j;
-d.value=precos.d;
-h.value=precos.h;
-}
 
 function gerar(){
 calendar.innerHTML="";
+
 for(let i=1;i<=31;i++){
 let d=document.createElement("div");
 d.className="day";
@@ -209,40 +163,41 @@ if(!dia)return alert("Escolhe dia");
 let total=0;
 let desc=[];
 
-if(document.querySelector('input[value="k"]').checked){
+if(kasseien.checked){
 let mtr=+k_m.value||0;
 total+=mtr*precos.k;
 desc.push(`Kasseien ${mtr}m`);
 }
 
-if(document.querySelector('input[value="p"]').checked){
+if(platines.checked){
 let mtr=+p_m.value||0;
 total+=mtr*precos.p;
 desc.push(`Platines ${mtr}m`);
 }
 
-if(document.querySelector('input[value="m"]').checked){
+if(mosaic.checked){
 let mtr=+m_m.value||0;
 total+=mtr*precos.m;
 desc.push(`Mosaic ${mtr}m`);
 }
 
-if(document.querySelector('input[value="j"]').checked){
+if(juntas.checked){
 total+=precos.j;
 desc.push("Juntas");
 }
 
-if(document.querySelector('input[value="d"]').checked){
+if(day.checked){
 total+=precos.d;
 desc.push("Day");
 }
 
-if(document.querySelector('input[value="h"]').checked){
+if(meio.checked){
 total+=precos.h;
 desc.push("Meio dia");
 }
 
 dados.push({mes:mes.value,dia,desc:desc.join(" + "),valor:total});
+
 localStorage.setItem("dados",JSON.stringify(dados));
 
 gerar();
@@ -290,7 +245,6 @@ w.document.write("<pre>"+txt+"</pre>");
 w.print();
 }
 
-loadPrices();
 gerar();
 render();
 </script>

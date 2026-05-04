@@ -3,305 +3,231 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hell Work 🔥</title>
+<title>Hell Work</title>
 
 <style>
 body{
-  margin:0;
-  font-family:Arial;
-  background:#111;
-  color:#fff;
+    margin:0;
+    font-family:Arial;
+    background:#000;
+    color:#fff;
 }
 
 /* HEADER */
-.header{
-  text-align:center;
-  padding:15px;
-  font-size:22px;
+h1{
+    text-align:center;
+    margin:20px 0;
 }
 
 /* SCREENS */
-.screen{display:none;padding:10px;}
-.active{display:block;}
+.screen{
+    display:none;
+    padding:15px;
+}
+.active{
+    display:block;
+}
 
-/* CALENDÁRIO */
+/* TOTAL */
+.total{
+    font-size:24px;
+    margin:10px;
+}
+
+/* CALENDARIO */
 .calendar{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
-  margin-top:10px;
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:8px;
+    margin-top:10px;
 }
-
 .day{
-  background:#222;
-  padding:15px 0;
-  text-align:center;
-  border-radius:10px;
+    background:#222;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+}
+.day.activeDay{
+    background:#0f5c6e;
 }
 
-.day.done{background:#0f3d4c;}
-.day.selected{background:#f4c7a1;color:#000;}
-
-/* INPUTS */
-input,select{
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:10px;
-  border:none;
-}
-
-/* BOTÕES */
+/* BUTTONS */
 button{
-  width:100%;
-  padding:12px;
-  margin-top:8px;
-  border-radius:10px;
-  border:none;
-  font-weight:bold;
+    width:100%;
+    padding:15px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    font-size:18px;
 }
 
-.green{background:#00c853;}
-.orange{background:#ff9800;}
-.blue{background:#2962ff;}
-.delete{background:red;}
+.add{background:#00c853;color:#fff;}
+.pdf{background:#2962ff;color:#fff;}
+.save{background:#00c853;color:#000;}
+.priceSave{background:#ff9800;color:#000;}
 
 /* NAV */
 .nav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  display:flex;
-  background:#000;
+    position:fixed;
+    bottom:0;
+    width:100%;
+    display:flex;
+    background:#111;
 }
-.nav button{
-  flex:1;
-  background:#000;
-  color:#fff;
-}
-
-/* LISTA */
-.item{
-  background:#222;
-  padding:10px;
-  margin-top:10px;
-  border-radius:10px;
+.nav div{
+    flex:1;
+    text-align:center;
+    padding:10px;
+    font-size:20px;
 }
 
-/* PREÇOS */
+/* INPUT */
+input{
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border-radius:8px;
+    border:none;
+}
+
+/* PRICE CONTROL */
 .priceRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin:6px 0;
-}
-.priceRow input{
-  width:60px;
-  text-align:center;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:10px 0;
 }
 .priceRow button{
-  width:35px;
+    width:40px;
+    height:40px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">🔥 Hell Work</div>
+<h1>🔥 Hell Work</h1>
 
-<!-- 🟢 HOME -->
+<!-- ===== SCREEN 1 (CALENDARIO) ===== -->
 <div id="home" class="screen active">
 
 <select id="mes">
-<option>Janeiro</option><option>Fevereiro</option><option>Março</option>
-<option>Abril</option><option>Maio</option><option>Junho</option>
-<option>Julho</option><option>Agosto</option><option>Setembro</option>
-<option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+<option>Janeiro</option>
+<option>Fevereiro</option>
 </select>
 
-<!-- 🔥 CALENDÁRIO (ESTÁ AQUI!) -->
-<div id="calendar" class="calendar"></div>
+<div class="total">💰 Total: €<span id="total">0</span></div>
 
-<h3 id="total">💰 Total: €0</h3>
-<div id="list"></div>
+<div class="calendar" id="calendar"></div>
+
+<button class="pdf">📄 Exportar PDF</button>
 
 </div>
 
-<!-- ➕ ADD -->
+<!-- ===== SCREEN 2 (ADICIONAR) ===== -->
 <div id="add" class="screen">
 
-<input id="local" placeholder="Local">
+<input placeholder="Local">
 
-<label><input type="checkbox" id="k"> Kasseien</label>
-<input id="k_m" placeholder="metros">
+<label><input type="checkbox"> Kasseien</label>
+<input placeholder="metros">
 
-<label><input type="checkbox" id="p"> Platines</label>
-<input id="p_m" placeholder="metros">
+<label><input type="checkbox"> Platines</label>
+<input placeholder="metros">
 
-<label><input type="checkbox" id="m"> Mosaic</label>
-<input id="m_m" placeholder="metros">
+<label><input type="checkbox"> Mosaic</label>
+<input placeholder="metros">
 
-<label><input type="checkbox" id="j"> Juntas</label>
-<label><input type="checkbox" id="d"> Day</label>
-<label><input type="checkbox" id="h"> Meio dia</label>
+<label><input type="checkbox"> Juntas</label>
 
-<button class="green" onclick="add()">Guardar</button>
+<label><input type="checkbox"> Day</label>
+
+<label><input type="checkbox"> Meio dia</label>
+
+<button class="save">Guardar</button>
 
 </div>
 
-<!-- ⚙️ SETTINGS -->
-<div id="settings" class="screen">
+<!-- ===== SCREEN 3 (PREÇOS) ===== -->
+<div id="prices" class="screen">
 
-<div class="priceRow">Kasseien <button onclick="chg('k',-0.5)">➖</button><input id="pk"><button onclick="chg('k',0.5)">➕</button></div>
-<div class="priceRow">Platines <button onclick="chg('p',-0.5)">➖</button><input id="pp"><button onclick="chg('p',0.5)">➕</button></div>
-<div class="priceRow">Mosaic <button onclick="chg('m',-0.5)">➖</button><input id="pm"><button onclick="chg('m',0.5)">➕</button></div>
-<div class="priceRow">Juntas <button onclick="chg('j',-1)">➖</button><input id="pj"><button onclick="chg('j',1)">➕</button></div>
-<div class="priceRow">Day <button onclick="chg('d',-5)">➖</button><input id="pd"><button onclick="chg('d',5)">➕</button></div>
-<div class="priceRow">Meio dia <button onclick="chg('h',-5)">➖</button><input id="ph"><button onclick="chg('h',5)">➕</button></div>
+<div class="priceRow">
+<span>Kasseien</span>
+<button onclick="change('k',-1)">-</button>
+<input id="k" value="10">
+<button onclick="change('k',1)">+</button>
+</div>
 
-<button class="orange" onclick="savePrices()">Guardar preços</button>
+<div class="priceRow">
+<span>Platines</span>
+<button onclick="change('p',-1)">-</button>
+<input id="p" value="12">
+<button onclick="change('p',1)">+</button>
+</div>
+
+<div class="priceRow">
+<span>Mosaic</span>
+<button onclick="change('m',-1)">-</button>
+<input id="m" value="15">
+<button onclick="change('m',1)">+</button>
+</div>
+
+<div class="priceRow">
+<span>Juntas</span>
+<button onclick="change('j',-1)">-</button>
+<input id="j" value="50">
+<button onclick="change('j',1)">+</button>
+</div>
+
+<div class="priceRow">
+<span>Day</span>
+<button onclick="change('d',-1)">-</button>
+<input id="d" value="220">
+<button onclick="change('d',1)">+</button>
+</div>
+
+<div class="priceRow">
+<span>Meio dia</span>
+<button onclick="change('md',-1)">-</button>
+<input id="md" value="110">
+<button onclick="change('md',1)">+</button>
+</div>
+
+<button class="priceSave">Guardar preços</button>
 
 </div>
 
 <!-- NAV -->
 <div class="nav">
-<button onclick="go('home')">📅</button>
-<button onclick="go('add')">➕</button>
-<button onclick="go('settings')">⚙️</button>
+<div onclick="show('home')">📅</div>
+<div onclick="show('add')">➕</div>
+<div onclick="show('prices')">⚙️</div>
 </div>
 
 <script>
-let dados=JSON.parse(localStorage.getItem("dados")||"[]");
-let dia=null;
 
-let precos=JSON.parse(localStorage.getItem("precos")||{
-k:7.5,p:7.5,m:9,j:20,d:220,h:110
-});
-
-/* NAV */
-function go(id){
-document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+/* TROCAR ECRÃ */
+function show(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
 }
 
-/* 🔥 CALENDÁRIO */
-function gerar(){
-let cal=document.getElementById("calendar");
-cal.innerHTML="";
-
+/* CALENDARIO */
+const cal=document.getElementById("calendar");
 for(let i=1;i<=31;i++){
-let d=document.createElement("div");
-d.className="day";
-d.innerText=i;
-
-if(dados.some(x=>x.dia===i && x.mes===mes.value)){
-d.classList.add("done");
+    let d=document.createElement("div");
+    d.className="day";
+    d.innerText=i;
+    d.onclick=()=>d.classList.toggle("activeDay");
+    cal.appendChild(d);
 }
 
-d.onclick=()=>{
-dia=i;
-document.querySelectorAll(".day").forEach(x=>x.classList.remove("selected"));
-d.classList.add("selected");
-go('add');
-};
-
-cal.appendChild(d);
-}
+/* PREÇOS + - */
+function change(id,val){
+    let el=document.getElementById(id);
+    el.value=parseInt(el.value||0)+val;
 }
 
-mes.onchange=gerar;
-
-/* ADD */
-function add(){
-if(!dia)return alert("Escolhe dia");
-
-let total=0;
-let desc=[];
-
-if(k.checked){
-let mtr=+k_m.value||0;
-total+=mtr*precos.k;
-desc.push(`Kasseien ${mtr}m`);
-}
-if(p.checked){
-let mtr=+p_m.value||0;
-total+=mtr*precos.p;
-desc.push(`Platines ${mtr}m`);
-}
-if(m.checked){
-let mtr=+m_m.value||0;
-total+=mtr*precos.m;
-desc.push(`Mosaic ${mtr}m`);
-}
-if(j.checked){total+=precos.j;desc.push("Juntas");}
-if(d.checked){total+=precos.d;desc.push("Day");}
-if(h.checked){total+=precos.h;desc.push("Meio dia");}
-
-dados.push({mes:mes.value,dia,desc:desc.join(" + "),valor:total});
-localStorage.setItem("dados",JSON.stringify(dados));
-
-go('home');
-gerar();
-render();
-}
-
-/* LISTA */
-function render(){
-let t=0;
-list.innerHTML="";
-
-dados.forEach((d,i)=>{
-t+=d.valor;
-list.innerHTML+=`
-<div class="item">
-${d.mes} - Dia ${d.dia}<br>
-${d.desc}<br>
-€${d.valor.toFixed(2)}
-<button class="delete" onclick="del(${i})">Apagar</button>
-</div>`;
-});
-
-total.innerText="💰 Total: €"+t.toFixed(2);
-}
-
-function del(i){
-dados.splice(i,1);
-localStorage.setItem("dados",JSON.stringify(dados));
-gerar();
-render();
-}
-
-/* PREÇOS */
-function loadPrices(){
-pk.value=precos.k;
-pp.value=precos.p;
-pm.value=precos.m;
-pj.value=precos.j;
-pd.value=precos.d;
-ph.value=precos.h;
-}
-
-function chg(id,val){
-let map={k:'pk',p:'pp',m:'pm',j:'pj',d:'pd',h:'ph'};
-let el=document.getElementById(map[id]);
-let n=parseFloat(el.value)||0;
-n+=val;
-if(n<0)n=0;
-el.value=n.toFixed(2);
-}
-
-function savePrices(){
-precos={
-k:+pk.value,p:+pp.value,m:+pm.value,j:+pj.value,d:+pd.value,h:+ph.value
-};
-localStorage.setItem("precos",JSON.stringify(precos));
-alert("Guardado");
-}
-
-/* INIT */
-loadPrices();
-gerar();
-render();
 </script>
 
 </body>

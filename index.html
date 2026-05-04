@@ -7,80 +7,108 @@
 
 <style>
 body{
+  margin:0;
+  font-family:Arial;
   background:#111;
   color:#fff;
-  font-family:Arial;
-  margin:0;
-  padding:10px;
 }
 
 /* HEADER */
-h2{text-align:center;}
-
-/* SELECT + INPUT */
-select,input{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border-radius:10px;
-  border:none;
+.header{
+  text-align:center;
+  padding:15px;
+  font-size:22px;
+  font-weight:bold;
 }
+
+/* SCREENS */
+.screen{display:none;padding:10px;}
+.active{display:block;}
+
+/* CALENDÁRIO */
+.calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+}
+.day{
+  background:#222;
+  padding:14px 0;
+  text-align:center;
+  border-radius:10px;
+}
+.day.done{background:#0f3d4c;}
+.day.selected{background:#f4c7a1;color:#000;}
 
 /* BOTÕES */
 button{
   width:100%;
   padding:12px;
+  border:none;
+  border-radius:10px;
+  margin-top:8px;
+  font-weight:bold;
+}
+.green{background:#00c853;}
+.blue{background:#2962ff;}
+.orange{background:#ff9800;}
+
+/* INPUTS */
+input,select{
+  width:100%;
+  padding:10px;
   margin-top:5px;
   border-radius:10px;
   border:none;
-  font-weight:bold;
 }
 
-.add{background:#00c853;}
-.pdf{background:#2962ff;}
-
-/* 🔥 CALENDÁRIO FIXO NO TOPO */
-.calendar{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
-  margin:10px 0;
+/* NAV */
+.nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  background:#000;
+}
+.nav button{
+  flex:1;
+  background:#000;
+  color:#fff;
+  border:none;
 }
 
-.day{
-  background:#222;
-  padding:12px 0;
-  text-align:center;
-  border-radius:10px;
-}
-
-.day.done{background:#0f3d4c;}
-.day.selected{background:#f4c7a1;color:#000;}
-
-/* FORM COMPACTO */
-.block{
-  margin-bottom:8px;
-}
-
-.checkbox{
-  margin-top:8px;
-}
-
-/* LISTA */
+/* LIST */
 .item{
   background:#222;
   padding:10px;
   margin-top:10px;
   border-radius:10px;
 }
-
 .delete{background:red;}
+
+/* PREÇOS */
+.priceRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:6px 0;
+}
+.priceRow input{
+  width:60px;
+  text-align:center;
+}
+.priceRow button{
+  width:35px;
+}
 </style>
 </head>
 
 <body>
 
-<h2>🔥 Hell Work</h2>
+<div class="header">🔥 Hell Work</div>
+
+<!-- 🟢 ECRÃ 1 -->
+<div id="home" class="screen active">
 
 <select id="mes">
 <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
@@ -89,53 +117,74 @@ button{
 <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
 </select>
 
-<!-- 🔥 CALENDÁRIO -->
 <div class="calendar" id="calendar"></div>
-
-<input id="local" placeholder="Local">
-
-<div class="block">
-<label><input type="checkbox" id="kasseien"> Kasseien</label>
-<input id="k_m" placeholder="metros">
-</div>
-
-<div class="block">
-<label><input type="checkbox" id="platines"> Platines</label>
-<input id="p_m" placeholder="metros">
-</div>
-
-<div class="block">
-<label><input type="checkbox" id="mosaic"> Mosaic</label>
-<input id="m_m" placeholder="metros">
-</div>
-
-<label class="checkbox"><input type="checkbox" id="juntas"> Juntas</label>
-<label class="checkbox"><input type="checkbox" id="day"> Day</label>
-<label class="checkbox"><input type="checkbox" id="meio"> Meio dia</label>
-
-<button class="add" onclick="add()">➕ Adicionar</button>
-<button class="pdf" onclick="pdf()">📄 Exportar PDF</button>
-
-<div id="list"></div>
 
 <h3 id="total">💰 Total: €0</h3>
 
+<div id="list"></div>
+
+</div>
+
+<!-- 🔵 ECRÃ 2 -->
+<div id="add" class="screen">
+
+<input id="local" placeholder="Local">
+
+<label><input type="checkbox" id="k"> Kasseien</label>
+<input id="k_m" placeholder="metros">
+
+<label><input type="checkbox" id="p"> Platines</label>
+<input id="p_m" placeholder="metros">
+
+<label><input type="checkbox" id="m"> Mosaic</label>
+<input id="m_m" placeholder="metros">
+
+<label><input type="checkbox" id="j"> Juntas</label>
+<label><input type="checkbox" id="d"> Day</label>
+<label><input type="checkbox" id="h"> Meio dia</label>
+
+<button class="green" onclick="add()">Guardar</button>
+
+</div>
+
+<!-- ⚙️ ECRÃ 3 -->
+<div id="settings" class="screen">
+
+<div class="priceRow">Kasseien <button onclick="chg('k',-0.5)">➖</button><input id="pk"><button onclick="chg('k',0.5)">➕</button></div>
+<div class="priceRow">Platines <button onclick="chg('p',-0.5)">➖</button><input id="pp"><button onclick="chg('p',0.5)">➕</button></div>
+<div class="priceRow">Mosaic <button onclick="chg('m',-0.5)">➖</button><input id="pm"><button onclick="chg('m',0.5)">➕</button></div>
+<div class="priceRow">Juntas <button onclick="chg('j',-1)">➖</button><input id="pj"><button onclick="chg('j',1)">➕</button></div>
+<div class="priceRow">Day <button onclick="chg('d',-5)">➖</button><input id="pd"><button onclick="chg('d',5)">➕</button></div>
+<div class="priceRow">Meio dia <button onclick="chg('h',-5)">➖</button><input id="ph"><button onclick="chg('h',5)">➕</button></div>
+
+<button class="orange" onclick="savePrices()">Guardar preços</button>
+
+</div>
+
+<!-- NAV -->
+<div class="nav">
+<button onclick="go('home')">📅</button>
+<button onclick="go('add')">➕</button>
+<button onclick="go('settings')">⚙️</button>
+</div>
+
 <script>
-let dia=null;
 let dados=JSON.parse(localStorage.getItem("dados")||"[]");
+let dia=null;
 
-let precos={
-k:7.5,
-p:7.5,
-m:9,
-j:20,
-d:220,
-h:110
-};
+let precos=JSON.parse(localStorage.getItem("precos")||{
+k:7.5,p:7.5,m:9,j:20,d:220,h:110
+});
 
+/* NAV */
+function go(id){
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+}
+
+/* CALENDÁRIO */
 function gerar(){
 calendar.innerHTML="";
-
 for(let i=1;i<=31;i++){
 let d=document.createElement("div");
 d.className="day";
@@ -149,61 +198,52 @@ d.onclick=()=>{
 dia=i;
 document.querySelectorAll(".day").forEach(x=>x.classList.remove("selected"));
 d.classList.add("selected");
+go('add');
 };
 
 calendar.appendChild(d);
 }
 }
-
 mes.onchange=gerar;
 
+/* ADD */
 function add(){
 if(!dia)return alert("Escolhe dia");
 
 let total=0;
 let desc=[];
 
-if(kasseien.checked){
+if(k.checked){
 let mtr=+k_m.value||0;
 total+=mtr*precos.k;
 desc.push(`Kasseien ${mtr}m`);
 }
 
-if(platines.checked){
+if(p.checked){
 let mtr=+p_m.value||0;
 total+=mtr*precos.p;
 desc.push(`Platines ${mtr}m`);
 }
 
-if(mosaic.checked){
+if(m.checked){
 let mtr=+m_m.value||0;
 total+=mtr*precos.m;
 desc.push(`Mosaic ${mtr}m`);
 }
 
-if(juntas.checked){
-total+=precos.j;
-desc.push("Juntas");
-}
-
-if(day.checked){
-total+=precos.d;
-desc.push("Day");
-}
-
-if(meio.checked){
-total+=precos.h;
-desc.push("Meio dia");
-}
+if(j.checked){total+=precos.j;desc.push("Juntas");}
+if(d.checked){total+=precos.d;desc.push("Day");}
+if(h.checked){total+=precos.h;desc.push("Meio dia");}
 
 dados.push({mes:mes.value,dia,desc:desc.join(" + "),valor:total});
-
 localStorage.setItem("dados",JSON.stringify(dados));
 
+go('home');
 gerar();
 render();
 }
 
+/* LIST */
 function render(){
 list.innerHTML="";
 let t=0;
@@ -229,22 +269,35 @@ gerar();
 render();
 }
 
-function pdf(){
-let txt="";
-let t=0;
-
-dados.forEach(d=>{
-txt+=`${d.mes} Dia ${d.dia} - ${d.desc} - €${d.valor}\n`;
-t+=d.valor;
-});
-
-txt+=`\nTotal: €${t}`;
-
-let w=window.open();
-w.document.write("<pre>"+txt+"</pre>");
-w.print();
+/* PREÇOS */
+function loadPrices(){
+pk.value=precos.k;
+pp.value=precos.p;
+pm.value=precos.m;
+pj.value=precos.j;
+pd.value=precos.d;
+ph.value=precos.h;
 }
 
+function chg(id,val){
+let map={k:'pk',p:'pp',m:'pm',j:'pj',d:'pd',h:'ph'};
+let el=document.getElementById(map[id]);
+let n=parseFloat(el.value)||0;
+n+=val;
+if(n<0)n=0;
+el.value=n.toFixed(2);
+}
+
+function savePrices(){
+precos={
+k:+pk.value,p:+pp.value,m:+pm.value,j:+pj.value,d:+pd.value,h:+ph.value
+};
+localStorage.setItem("precos",JSON.stringify(precos));
+alert("Guardado");
+}
+
+/* INIT */
+loadPrices();
 gerar();
 render();
 </script>

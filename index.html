@@ -5,102 +5,47 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hell Work</title>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
-body{
-    margin:0;
-    font-family:Arial;
-    background:#000;
-    color:#fff;
-}
+body{background:#000;color:#fff;font-family:Arial;margin:0}
+h1{text-align:center}
 
-/* HEADER */
-h1{
-    text-align:center;
-    margin:20px 0;
-}
+.screen{display:none;padding:15px}
+.active{display:block}
 
-/* SCREENS */
-.screen{
-    display:none;
-    padding:15px;
-}
-.active{
-    display:block;
-}
-
-/* TOTAL */
-.total{
-    font-size:24px;
-    margin:10px;
-}
-
-/* CALENDARIO */
 .calendar{
-    display:grid;
-    grid-template-columns:repeat(7,1fr);
-    gap:8px;
-    margin-top:10px;
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:8px;
 }
 .day{
-    background:#222;
-    padding:15px;
-    border-radius:10px;
-    text-align:center;
+background:#222;
+padding:15px;
+border-radius:10px;
+text-align:center;
 }
-.day.activeDay{
-    background:#0f5c6e;
-}
+.day.hasData{background:#0f5c6e}
 
-/* BUTTONS */
-button{
-    width:100%;
-    padding:15px;
-    margin-top:10px;
-    border:none;
-    border-radius:10px;
-    font-size:18px;
-}
+button{width:100%;padding:15px;margin-top:10px;border:none;border-radius:10px}
+.green{background:#00c853}
+.blue{background:#2962ff}
+.orange{background:#ff9800}
 
-.add{background:#00c853;color:#fff;}
-.pdf{background:#2962ff;color:#fff;}
-.save{background:#00c853;color:#000;}
-.priceSave{background:#ff9800;color:#000;}
-
-/* NAV */
 .nav{
-    position:fixed;
-    bottom:0;
-    width:100%;
-    display:flex;
-    background:#111;
+position:fixed;
+bottom:0;
+width:100%;
+display:flex;
+background:#111;
 }
 .nav div{
-    flex:1;
-    text-align:center;
-    padding:10px;
-    font-size:20px;
+flex:1;
+text-align:center;
+padding:10px;
 }
 
-/* INPUT */
-input{
-    width:100%;
-    padding:10px;
-    margin:5px 0;
-    border-radius:8px;
-    border:none;
-}
-
-/* PRICE CONTROL */
-.priceRow{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin:10px 0;
-}
-.priceRow button{
-    width:40px;
-    height:40px;
-}
+input{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none}
 </style>
 </head>
 
@@ -108,92 +53,56 @@ input{
 
 <h1>🔥 Hell Work</h1>
 
-<!-- ===== SCREEN 1 (CALENDARIO) ===== -->
+<!-- HOME -->
 <div id="home" class="screen active">
 
 <select id="mes">
 <option>Janeiro</option>
-<option>Fevereiro</option>
 </select>
 
-<div class="total">💰 Total: €<span id="total">0</span></div>
+<h2>💰 Total: €<span id="total">0</span></h2>
 
 <div class="calendar" id="calendar"></div>
 
-<button class="pdf">📄 Exportar PDF</button>
+<button class="blue" onclick="exportPDF()">📄 Exportar PDF</button>
 
 </div>
 
-<!-- ===== SCREEN 2 (ADICIONAR) ===== -->
+<!-- ADD -->
 <div id="add" class="screen">
 
-<input placeholder="Local">
+<input id="local" placeholder="Local">
 
-<label><input type="checkbox"> Kasseien</label>
-<input placeholder="metros">
+<label><input type="checkbox" id="k"> Kasseien</label>
+<input id="k_m" placeholder="metros">
 
-<label><input type="checkbox"> Platines</label>
-<input placeholder="metros">
+<label><input type="checkbox" id="p"> Platines</label>
+<input id="p_m" placeholder="metros">
 
-<label><input type="checkbox"> Mosaic</label>
-<input placeholder="metros">
+<label><input type="checkbox" id="m"> Mosaic</label>
+<input id="m_m" placeholder="metros">
 
-<label><input type="checkbox"> Juntas</label>
+<label><input type="checkbox" id="j"> Juntas</label>
 
-<label><input type="checkbox"> Day</label>
+<label><input type="checkbox" id="d"> Day</label>
 
-<label><input type="checkbox"> Meio dia</label>
+<label><input type="checkbox" id="md"> Meio dia</label>
 
-<button class="save">Guardar</button>
+<button class="green" onclick="guardar()">Guardar</button>
 
 </div>
 
-<!-- ===== SCREEN 3 (PREÇOS) ===== -->
+<!-- PREÇOS -->
 <div id="prices" class="screen">
 
-<div class="priceRow">
-<span>Kasseien</span>
-<button onclick="change('k',-1)">-</button>
-<input id="k" value="10">
-<button onclick="change('k',1)">+</button>
-</div>
+Kasseien <input id="pk" value="6.5"><br>
+Platines <input id="pp" value="7.5"><br>
+Mosaic <input id="pm" value="9"><br>
+Juntas <input id="pj" value="49"><br>
+Day <input id="pd" value="220"><br>
+Meio dia <input id="pmd" value="110"><br>
 
-<div class="priceRow">
-<span>Platines</span>
-<button onclick="change('p',-1)">-</button>
-<input id="p" value="12">
-<button onclick="change('p',1)">+</button>
-</div>
-
-<div class="priceRow">
-<span>Mosaic</span>
-<button onclick="change('m',-1)">-</button>
-<input id="m" value="15">
-<button onclick="change('m',1)">+</button>
-</div>
-
-<div class="priceRow">
-<span>Juntas</span>
-<button onclick="change('j',-1)">-</button>
-<input id="j" value="50">
-<button onclick="change('j',1)">+</button>
-</div>
-
-<div class="priceRow">
-<span>Day</span>
-<button onclick="change('d',-1)">-</button>
-<input id="d" value="220">
-<button onclick="change('d',1)">+</button>
-</div>
-
-<div class="priceRow">
-<span>Meio dia</span>
-<button onclick="change('md',-1)">-</button>
-<input id="md" value="110">
-<button onclick="change('md',1)">+</button>
-</div>
-
-<button class="priceSave">Guardar preços</button>
+<button class="orange" onclick="savePrices()">Guardar preços</button>
 
 </div>
 
@@ -206,26 +115,99 @@ input{
 
 <script>
 
+let selectedDay=null;
+let data=JSON.parse(localStorage.getItem("dados")||"{}");
+let prices=JSON.parse(localStorage.getItem("precos")||"{}");
+
 /* TROCAR ECRÃ */
 function show(id){
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
 }
 
 /* CALENDARIO */
-const cal=document.getElementById("calendar");
+let cal=document.getElementById("calendar");
+
 for(let i=1;i<=31;i++){
-    let d=document.createElement("div");
-    d.className="day";
-    d.innerText=i;
-    d.onclick=()=>d.classList.toggle("activeDay");
-    cal.appendChild(d);
+let d=document.createElement("div");
+d.className="day";
+d.innerText=i;
+
+if(data[i]) d.classList.add("hasData");
+
+d.onclick=()=>{
+selectedDay=i;
+show("add");
+};
+
+cal.appendChild(d);
 }
 
-/* PREÇOS + - */
-function change(id,val){
-    let el=document.getElementById(id);
-    el.value=parseInt(el.value||0)+val;
+/* GUARDAR */
+function guardar(){
+
+if(!selectedDay)return alert("Escolhe um dia");
+
+let total=0;
+
+if(k.checked) total+=k_m.value*getP("k");
+if(p.checked) total+=p_m.value*getP("p");
+if(m.checked) total+=m_m.value*getP("m");
+if(j.checked) total+=getP("j");
+if(d.checked) total+=getP("d");
+if(md.checked) total+=getP("md");
+
+data[selectedDay]=total;
+
+localStorage.setItem("dados",JSON.stringify(data));
+
+location.reload();
+}
+
+/* PREÇOS */
+function savePrices(){
+prices={
+k:pk.value,
+p:pp.value,
+m:pm.value,
+j:pj.value,
+d:pd.value,
+md:pmd.value
+};
+localStorage.setItem("precos",JSON.stringify(prices));
+alert("Guardado");
+}
+
+function getP(type){
+return parseFloat(prices[type]||0);
+}
+
+/* TOTAL */
+function calcTotal(){
+let t=0;
+for(let d in data){
+t+=data[d];
+}
+document.getElementById("total").innerText=t.toFixed(2);
+}
+calcTotal();
+
+/* PDF */
+function exportPDF(){
+
+const { jsPDF } = window.jspdf;
+let doc=new jsPDF();
+
+let y=10;
+
+for(let d in data){
+doc.text(`Dia ${d} - €${data[d]}`,10,y);
+y+=10;
+}
+
+doc.text(`Total: €${document.getElementById("total").innerText}`,10,y+10);
+
+doc.save("trabalho.pdf");
 }
 
 </script>

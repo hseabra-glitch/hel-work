@@ -18,7 +18,6 @@ body{
   text-align:center;
   padding:15px;
   font-size:22px;
-  font-weight:bold;
 }
 
 /* SCREENS */
@@ -30,37 +29,42 @@ body{
   display:grid;
   grid-template-columns:repeat(7,1fr);
   gap:6px;
+  margin-top:10px;
 }
+
 .day{
   background:#222;
-  padding:14px 0;
+  padding:15px 0;
   text-align:center;
   border-radius:10px;
 }
+
 .day.done{background:#0f3d4c;}
 .day.selected{background:#f4c7a1;color:#000;}
-
-/* BOTÕES */
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  margin-top:8px;
-  font-weight:bold;
-}
-.green{background:#00c853;}
-.blue{background:#2962ff;}
-.orange{background:#ff9800;}
 
 /* INPUTS */
 input,select{
   width:100%;
   padding:10px;
-  margin-top:5px;
+  margin-top:6px;
   border-radius:10px;
   border:none;
 }
+
+/* BOTÕES */
+button{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border-radius:10px;
+  border:none;
+  font-weight:bold;
+}
+
+.green{background:#00c853;}
+.orange{background:#ff9800;}
+.blue{background:#2962ff;}
+.delete{background:red;}
 
 /* NAV */
 .nav{
@@ -74,17 +78,15 @@ input,select{
   flex:1;
   background:#000;
   color:#fff;
-  border:none;
 }
 
-/* LIST */
+/* LISTA */
 .item{
   background:#222;
   padding:10px;
   margin-top:10px;
   border-radius:10px;
 }
-.delete{background:red;}
 
 /* PREÇOS */
 .priceRow{
@@ -107,7 +109,7 @@ input,select{
 
 <div class="header">🔥 Hell Work</div>
 
-<!-- 🟢 ECRÃ 1 -->
+<!-- 🟢 HOME -->
 <div id="home" class="screen active">
 
 <select id="mes">
@@ -117,15 +119,15 @@ input,select{
 <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
 </select>
 
-<div class="calendar" id="calendar"></div>
+<!-- 🔥 CALENDÁRIO (ESTÁ AQUI!) -->
+<div id="calendar" class="calendar"></div>
 
 <h3 id="total">💰 Total: €0</h3>
-
 <div id="list"></div>
 
 </div>
 
-<!-- 🔵 ECRÃ 2 -->
+<!-- ➕ ADD -->
 <div id="add" class="screen">
 
 <input id="local" placeholder="Local">
@@ -147,7 +149,7 @@ input,select{
 
 </div>
 
-<!-- ⚙️ ECRÃ 3 -->
+<!-- ⚙️ SETTINGS -->
 <div id="settings" class="screen">
 
 <div class="priceRow">Kasseien <button onclick="chg('k',-0.5)">➖</button><input id="pk"><button onclick="chg('k',0.5)">➕</button></div>
@@ -182,9 +184,11 @@ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 }
 
-/* CALENDÁRIO */
+/* 🔥 CALENDÁRIO */
 function gerar(){
-calendar.innerHTML="";
+let cal=document.getElementById("calendar");
+cal.innerHTML="";
+
 for(let i=1;i<=31;i++){
 let d=document.createElement("div");
 d.className="day";
@@ -201,9 +205,10 @@ d.classList.add("selected");
 go('add');
 };
 
-calendar.appendChild(d);
+cal.appendChild(d);
 }
 }
+
 mes.onchange=gerar;
 
 /* ADD */
@@ -218,19 +223,16 @@ let mtr=+k_m.value||0;
 total+=mtr*precos.k;
 desc.push(`Kasseien ${mtr}m`);
 }
-
 if(p.checked){
 let mtr=+p_m.value||0;
 total+=mtr*precos.p;
 desc.push(`Platines ${mtr}m`);
 }
-
 if(m.checked){
 let mtr=+m_m.value||0;
 total+=mtr*precos.m;
 desc.push(`Mosaic ${mtr}m`);
 }
-
 if(j.checked){total+=precos.j;desc.push("Juntas");}
 if(d.checked){total+=precos.d;desc.push("Day");}
 if(h.checked){total+=precos.h;desc.push("Meio dia");}
@@ -243,10 +245,10 @@ gerar();
 render();
 }
 
-/* LIST */
+/* LISTA */
 function render(){
-list.innerHTML="";
 let t=0;
+list.innerHTML="";
 
 dados.forEach((d,i)=>{
 t+=d.valor;

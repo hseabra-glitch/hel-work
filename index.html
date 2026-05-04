@@ -49,14 +49,8 @@ button{
   border-radius:10px;
 }
 
-.day.done{
-  background:#0f3d4c;
-}
-
-.day.selected{
-  background:#f4c7a1;
-  color:#000;
-}
+.day.done{background:#0f3d4c;}
+.day.selected{background:#f4c7a1;color:#000;}
 
 .item{
   background:#222;
@@ -65,10 +59,7 @@ button{
   border-radius:10px;
 }
 
-.delete{
-  background:red;
-  margin-top:5px;
-}
+.delete{background:red;}
 
 #settings div{
   display:flex;
@@ -84,6 +75,7 @@ button{
 
 #settings button{
   width:40px;
+  padding:8px;
 }
 </style>
 </head>
@@ -96,12 +88,12 @@ button{
 
 <div id="settings" style="display:none;">
 
-<div>Kasseien <button onclick="change('k',-0.5)">➖</button><input id="k" value="7.5"><button onclick="change('k',0.5)">➕</button></div>
-<div>Platines <button onclick="change('p',-0.5)">➖</button><input id="p" value="7.5"><button onclick="change('p',0.5)">➕</button></div>
-<div>Mosaic <button onclick="change('m',-0.5)">➖</button><input id="m" value="9"><button onclick="change('m',0.5)">➕</button></div>
-<div>Juntas <button onclick="change('j',-1)">➖</button><input id="j" value="20"><button onclick="change('j',1)">➕</button></div>
-<div>Day <button onclick="change('d',-5)">➖</button><input id="d" value="220"><button onclick="change('d',5)">➕</button></div>
-<div>Meio dia <button onclick="change('h',-5)">➖</button><input id="h" value="110"><button onclick="change('h',5)">➕</button></div>
+<div>Kasseien <button onclick="change('k',-0.5)">➖</button><input id="k"><button onclick="change('k',0.5)">➕</button></div>
+<div>Platines <button onclick="change('p',-0.5)">➖</button><input id="p"><button onclick="change('p',0.5)">➕</button></div>
+<div>Mosaic <button onclick="change('m',-0.5)">➖</button><input id="m"><button onclick="change('m',0.5)">➕</button></div>
+<div>Juntas <button onclick="change('j',-1)">➖</button><input id="j"><button onclick="change('j',1)">➕</button></div>
+<div>Day <button onclick="change('d',-5)">➖</button><input id="d"><button onclick="change('d',5)">➕</button></div>
+<div>Meio dia <button onclick="change('h',-5)">➖</button><input id="h"><button onclick="change('h',5)">➕</button></div>
 
 <button onclick="savePrices()">Guardar</button>
 
@@ -128,7 +120,6 @@ button{
 <input id="m_m" placeholder="metros">
 
 <label><input type="checkbox" value="j"> Juntas</label>
-
 <label><input type="checkbox" value="d"> Day</label>
 <label><input type="checkbox" value="h"> Meio dia</label>
 
@@ -142,7 +133,19 @@ button{
 <script>
 let dia=null;
 let dados=JSON.parse(localStorage.getItem("dados")||"[]");
-let precos=JSON.parse(localStorage.getItem("precos")||"{}");
+let precos=JSON.parse(localStorage.getItem("precos")||{
+k:7.5,p:7.5,m:9,j:20,d:220,h:110
+});
+
+// 🔥 carregar valores nos inputs
+function loadPrices(){
+k.value=precos.k;
+p.value=precos.p;
+m.value=precos.m;
+j.value=precos.j;
+d.value=precos.d;
+h.value=precos.h;
+}
 
 function toggleSettings(){
 let s=document.getElementById("settings");
@@ -174,14 +177,10 @@ let d=document.createElement("div");
 d.className="day";
 d.innerText=i;
 
-// marcar dias com trabalho
-let tem = dados.some(x => x.dia === i && x.mes === mes.value);
+let tem = dados.some(x => x.dia===i && x.mes===mes.value);
 if(tem) d.classList.add("done");
 
-d.onclick=()=>{
-dia=i;
-selecionar();
-};
+d.onclick=()=>{dia=i;selecionar();};
 
 c.appendChild(d);
 }
@@ -192,7 +191,7 @@ document.querySelectorAll(".day").forEach(d=>d.classList.remove("selected"));
 document.querySelectorAll(".day")[dia-1].classList.add("selected");
 }
 
-mes.onchange = gerar;
+mes.onchange=gerar;
 
 function add(){
 if(!dia)return alert("Escolhe dia");
@@ -200,36 +199,36 @@ if(!dia)return alert("Escolhe dia");
 let total=0;
 let desc=[];
 
-if(document.querySelector('input[value="k"]').checked){
+if(kasseien.checked){
 let mtr=+k_m.value||0;
-total+=mtr*(precos.k||7.5);
+total+=mtr*precos.k;
 desc.push(`Kasseien ${mtr}m`);
 }
 
-if(document.querySelector('input[value="p"]').checked){
+if(platines.checked){
 let mtr=+p_m.value||0;
-total+=mtr*(precos.p||7.5);
+total+=mtr*precos.p;
 desc.push(`Platines ${mtr}m`);
 }
 
-if(document.querySelector('input[value="m"]').checked){
+if(mosaic.checked){
 let mtr=+m_m.value||0;
-total+=mtr*(precos.m||9);
+total+=mtr*precos.m;
 desc.push(`Mosaic ${mtr}m`);
 }
 
-if(document.querySelector('input[value="j"]').checked){
-total+=precos.j||20;
+if(juntas.checked){
+total+=precos.j;
 desc.push("Juntas");
 }
 
-if(document.querySelector('input[value="d"]').checked){
-total+=precos.d||220;
+if(day.checked){
+total+=precos.d;
 desc.push("Day");
 }
 
-if(document.querySelector('input[value="h"]').checked){
-total+=precos.h||110;
+if(meio.checked){
+total+=precos.h;
 desc.push("Meio dia");
 }
 
@@ -288,6 +287,15 @@ w.document.write("<pre>"+txt+"</pre>");
 w.print();
 }
 
+// corrigir IDs
+let kasseien=document.querySelector('input[value="k"]');
+let platines=document.querySelector('input[value="p"]');
+let mosaic=document.querySelector('input[value="m"]');
+let juntas=document.querySelector('input[value="j"]');
+let day=document.querySelector('input[value="d"]');
+let meio=document.querySelector('input[value="h"]');
+
+loadPrices();
 gerar();
 render();
 </script>

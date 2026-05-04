@@ -5,56 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hell Work</title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111111">
-
-<!-- iPhone fullscreen -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Hell Work">
-
-<!-- Ícone iPhone -->
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/833/833472.png">
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body {
-  font-family: Arial;
-  background: #111;
-  color: white;
-  padding: 15px;
-}
-h2 { text-align: center; }
-input, select {
-  width: 100%;
-  padding: 12px;
-  margin: 5px 0;
-  border-radius: 8px;
-  border: none;
-}
-button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 8px;
-  border-radius: 8px;
-  border: none;
-  font-weight: bold;
-}
-.add { background: #00c853; color: white; }
-.pdf { background: #2962ff; color: white; }
-.del { background: #d50000; color: white; }
-.item {
-  background: #222;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 10px;
-}
-.total {
-  margin-top: 15px;
-  font-size: 20px;
-  text-align: center;
-}
+body{font-family:Arial;background:#111;color:#fff;padding:15px;}
+h2{text-align:center;}
+select,input{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none;}
+button{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:none;font-weight:bold;}
+.add{background:#00c853;}
+.item{background:#444;}
+.pdf{background:#2962ff;}
+.settings{background:#ff9800;}
+.del{background:#d50000;}
+.card{background:#1c1c1c;padding:10px;margin-top:10px;border-radius:10px;}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px;}
+.day{background:#222;padding:10px;text-align:center;border-radius:6px;cursor:pointer;}
+.day.active{background:#00c853;}
+.total{text-align:center;margin-top:10px;font-size:20px;}
 </style>
 </head>
 
@@ -62,142 +29,208 @@ button {
 
 <h2>🔥 Hell Work</h2>
 
-<select id="month">
-<option>Janeiro</option>
-<option>Fevereiro</option>
-<option>Março</option>
-<option>Abril</option>
-<option>Maio</option>
-<option>Junho</option>
-<option>Julho</option>
-<option>Agosto</option>
-<option>Setembro</option>
-<option>Outubro</option>
-<option>Novembro</option>
-<option>Dezembro</option>
-</select>
+<button class="settings" onclick="toggleSettings()">⚙️ Preços</button>
 
-<select id="day"></select>
-
-<input id="local" placeholder="Local">
-<input id="meters" placeholder="Metros">
-
-<select id="type">
-<option value="">Tipo</option>
-<option value="cassia">Cassia</option>
-<option value="platines">Platines</option>
-<option value="mosaic">Mosaic</option>
-<option value="day">Day (220€)</option>
-<option value="half">Meio dia (110€)</option>
-</select>
-
-<button class="add" onclick="add()">➕ Adicionar</button>
-<button class="pdf" onclick="exportPDF()">📄 Exportar PDF</button>
-
-<div id="list"></div>
-
-<div class="total">
-💰 Total: € <span id="total">0</span>
+<div id="settings" style="display:none;">
+<input id="kasseien" placeholder="Kasseien €/m">
+<input id="platines" placeholder="Platines €/m">
+<input id="mosaic" placeholder="Mosaic €/m">
+<input id="juntas" placeholder="Juntas € (fixo)">
+<input id="day" placeholder="Day €">
+<input id="half" placeholder="Meio dia €">
+<button onclick="savePrices()">Guardar</button>
 </div>
 
+<select id="mes" onchange="renderCalendar()">
+<option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+<option>Abril</option><option>Maio</option><option>Junho</option>
+<option>Julho</option><option>Agosto</option><option>Setembro</option>
+<option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+</select>
+
+<div class="calendar" id="calendar"></div>
+
+<hr>
+
+<h3 id="diaAtual">Seleciona um dia</h3>
+
+<input id="local" placeholder="Local">
+
+<select id="tipo">
+<option>Kasseien</option>
+<option>Platines</option>
+<option>Mosaic</option>
+<option>Juntas</option>
+<option>Day</option>
+<option>Meio dia</option>
+</select>
+
+<input id="metros" placeholder="Metros (se aplicável)">
+
+<button class="item" onclick="addItem()">➕ Adicionar linha</button>
+
+<div id="itens"></div>
+
+<button class="add" onclick="guardar()">💾 Guardar</button>
+
+<button class="pdf" onclick="exportPDF()">📄 PDF mês</button>
+
+<div class="total">💰 Total mês: € <span id="total">0</span></div>
+
 <script>
-let data = JSON.parse(localStorage.getItem("work")) || [];
+let dados = JSON.parse(localStorage.getItem("dados")) || {};
+let itens = [];
+let diaSelecionado = null;
 
-const daySelect = document.getElementById("day");
+function getPrices(){
+return JSON.parse(localStorage.getItem("prices"))||{
+kasseien:7.5,platines:7.5,mosaic:9,juntas:20,day:220,half:110
+};
+}
+
+function savePrices(){
+let p={
+kasseien:+kasseien.value||0,
+platines:+platines.value||0,
+mosaic:+mosaic.value||0,
+juntas:+juntas.value||0,
+day:+day.value||0,
+half:+half.value||0
+};
+localStorage.setItem("prices",JSON.stringify(p));
+alert("Guardado");
+}
+
+function toggleSettings(){
+settings.style.display=settings.style.display==="none"?"block":"none";
+}
+
+function renderCalendar(){
+let cal=document.getElementById("calendar");
+cal.innerHTML="";
+let mes=mesSelect();
+
 for(let i=1;i<=31;i++){
-  let opt = document.createElement("option");
-  opt.value = i;
-  opt.textContent = i;
-  daySelect.appendChild(opt);
+let key=mes+"-"+i;
+let div=document.createElement("div");
+div.className="day";
+div.innerText=i;
+
+if(dados[key]) div.classList.add("active");
+
+div.onclick=()=>selectDia(i);
+cal.appendChild(div);
+}
+calcTotal();
 }
 
-function getPrice(type){
-  if(type==="cassia") return 7.5;
-  if(type==="platines") return 7.5;
-  if(type==="mosaic") return 9;
-  if(type==="day") return 220;
-  if(type==="half") return 110;
-  return 0;
+function mesSelect(){return document.getElementById("mes").value;}
+
+function selectDia(d){
+diaSelecionado=d;
+document.getElementById("diaAtual").innerText="Dia "+d;
+
+let key=mesSelect()+"-"+d;
+
+if(dados[key]){
+itens=dados[key].itens;
+local.value=dados[key].local;
+}else{
+itens=[];
+local.value="";
 }
 
-function add(){
-  const month = document.getElementById("month").value;
-  const day = document.getElementById("day").value;
-  const local = document.getElementById("local").value;
-  const meters = parseFloat(document.getElementById("meters").value) || 0;
-  const type = document.getElementById("type").value;
-
-  if(!type || !local){
-    alert("Preenche local e tipo");
-    return;
-  }
-
-  const value = (type==="day") ? 220 : (type==="half") ? 110 : meters * getPrice(type);
-
-  data.push({month, day, local, meters, type, value});
-  localStorage.setItem("work", JSON.stringify(data));
-
-  document.getElementById("local").value="";
-  document.getElementById("meters").value="";
-  document.getElementById("type").value="";
-
-  render();
+renderItens();
 }
 
-function remove(index){
-  data.splice(index,1);
-  localStorage.setItem("work", JSON.stringify(data));
-  render();
+function addItem(){
+let tipo=document.getElementById("tipo").value;
+let m=+document.getElementById("metros").value||0;
+itens.push({tipo,metros:m});
+renderItens();
 }
 
-function render(){
-  const list = document.getElementById("list");
-  list.innerHTML = "";
+function renderItens(){
+itensDiv.innerHTML="";
+itens.forEach((i,idx)=>{
+let d=document.createElement("div");
+d.className="card";
+d.innerHTML=`
+${i.tipo} ${i.metros?i.metros+"m":""}
+<button class="del" onclick="removeItem(${idx})">X</button>`;
+itensDiv.appendChild(d);
+});
+}
 
-  let total = 0;
+function removeItem(i){
+itens.splice(i,1);
+renderItens();
+}
 
-  data.forEach((d,i)=>{
-    total += d.value;
+function calcItem(i){
+let p=getPrices();
+if(i.tipo==="Kasseien") return i.metros*p.kasseien;
+if(i.tipo==="Platines") return i.metros*p.platines;
+if(i.tipo==="Mosaic") return i.metros*p.mosaic;
+if(i.tipo==="Juntas") return p.juntas;
+if(i.tipo==="Day") return p.day;
+if(i.tipo==="Meio dia") return p.half;
+return 0;
+}
 
-    list.innerHTML += `
-      <div class="item">
-        <b>${d.month} - Dia ${d.day}</b><br>
-        ${d.local} | ${d.meters ? d.meters+"m | " : ""}${d.type}<br>
-        €${d.value.toFixed(2)}<br>
-        <button class="del" onclick="remove(${i})">❌ Apagar</button>
-      </div>
-    `;
-  });
+function guardar(){
+if(!diaSelecionado) return alert("Escolhe um dia");
 
-  document.getElementById("total").textContent = total.toFixed(2);
+let key=mesSelect()+"-"+diaSelecionado;
+dados[key]={local:local.value,itens};
+
+localStorage.setItem("dados",JSON.stringify(dados));
+
+renderCalendar();
+alert("Guardado");
+}
+
+function calcTotal(){
+let total=0;
+let mes=mesSelect();
+
+for(let k in dados){
+if(k.startsWith(mes)){
+dados[k].itens.forEach(i=>total+=calcItem(i));
+}
+}
+document.getElementById("total").innerText=total.toFixed(2);
 }
 
 function exportPDF(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+const {jsPDF}=window.jspdf;
+let doc=new jsPDF();
+let y=10;
+let mes=mesSelect();
+let total=0;
 
-  let y = 10;
-  let total = 0;
+for(let k in dados){
+if(k.startsWith(mes)){
+let d=dados[k];
+let val=0;
+d.itens.forEach(i=>val+=calcItem(i));
+total+=val;
 
-  data.forEach(d=>{
-    doc.text(`${d.month} Dia ${d.day} - ${d.local} - ${d.meters ? d.meters+"m | " : ""}${d.type} - €${d.value.toFixed(2)}`,10,y);
-    y += 8;
-    total += d.value;
-  });
-
-  y += 10;
-  doc.text(`Total: €${total.toFixed(2)}`,10,y);
-
-  doc.save("hell-work.pdf");
+doc.text(k+" - "+d.local,10,y); y+=6;
+doc.text(d.itens.map(i=>i.tipo+" "+(i.metros?i.metros+"m":"")).join(" | "),10,y); y+=6;
+doc.text("€"+val.toFixed(2),10,y); y+=10;
+}
 }
 
-// OFFLINE (Service Worker)
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+doc.text("Total: €"+total.toFixed(2),10,y);
+doc.save("hellwork.pdf");
 }
 
-render();
+renderCalendar();
 </script>
 
 </body>
 </html>
+
+
+

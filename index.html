@@ -8,7 +8,6 @@
 
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.png">
-<meta name="theme-color" content="#000000">
 
 <style>
 body{
@@ -20,61 +19,75 @@ body{
 
 h1{text-align:center;}
 
-.container{padding:15px;}
+.container{
+  padding:15px;
+  padding-bottom:100px;
+}
 
 .page{display:none;}
 .active{display:block;}
 
+/* NAV */
 .nav{
   position:fixed;
   bottom:0;
   width:100%;
   display:flex;
   justify-content:space-around;
-  background:#111;
-  padding:10px;
+  align-items:center;
+  background:rgba(20,20,20,0.9);
+  backdrop-filter: blur(10px);
+  padding:20px 0;
 }
 
 .nav button{
   background:none;
   border:none;
-  color:#fff;
-  font-size:20px;
+  color:#888;
+  font-size:30px;
+}
+
+.nav button.activeNav{
+  color:#4da6ff;
 }
 
 /* CALENDAR */
 .grid{
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  gap:8px;
-  margin-top:15px;
+  gap:10px;
 }
 
 .day{
   background:#222;
-  padding:15px;
+  padding:18px;
   text-align:center;
-  border-radius:10px;
+  border-radius:12px;
 }
 
-.day.activeDay{
-  background:#00c853;
-}
+/* CORES */
+.k{background:#00c853;}
+.p{background:#2962ff;}
+.m{background:#9c27b0;}
+.j{background:#ff9800;}
+.d{background:#ffc107;}
+.h{background:#aaa;}
 
 /* INPUT */
 input,select{
   width:100%;
   padding:15px;
-  border-radius:10px;
+  border-radius:12px;
   border:none;
   margin:10px 0;
 }
 
+/* BUTTON */
 .btn{
   width:100%;
   padding:15px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   font-size:18px;
 }
 
@@ -109,22 +122,23 @@ input,select{
 
 <input id="local" placeholder="Local">
 
-<label><input type="checkbox" id="kasseien"> Kasseien</label>
-<input id="kasseien_m" placeholder="metros">
+<label><input type="checkbox" id="k"> Kasseien</label>
+<input id="k_m" placeholder="metros">
 
-<label><input type="checkbox" id="platines"> Platines</label>
-<input id="platines_m" placeholder="metros">
+<label><input type="checkbox" id="p"> Platines</label>
+<input id="p_m" placeholder="metros">
 
-<label><input type="checkbox" id="mosaic"> Mosaic</label>
-<input id="mosaic_m" placeholder="metros">
+<label><input type="checkbox" id="m"> Mosaic</label>
+<input id="m_m" placeholder="metros">
 
-<label><input type="checkbox" id="juntas"> Juntas</label>
-<input id="juntas_m" placeholder="metros">
+<label><input type="checkbox" id="j"> Juntas</label>
+<input id="j_m" placeholder="metros">
 
-<label><input type="checkbox" id="day"> Day</label>
-<label><input type="checkbox" id="half"> Meio dia</label>
+<label><input type="checkbox" id="d"> Day</label>
+<label><input type="checkbox" id="h"> Meio dia</label>
 
-<button class="btn green" onclick="saveDay()">Guardar dia</button>
+<button class="btn green" onclick="saveDay()">Guardar</button>
+<button class="btn orange" onclick="deleteDay()">Apagar</button>
 
 </div>
 
@@ -133,12 +147,12 @@ input,select{
 
 <h2>⚙️ Preços</h2>
 
-<input id="p_k" placeholder="Kasseien">
-<input id="p_p" placeholder="Platines">
-<input id="p_m" placeholder="Mosaic">
-<input id="p_j" placeholder="Juntas">
-<input id="p_d" placeholder="Day">
-<input id="p_h" placeholder="Meio dia">
+<input id="pk" placeholder="Kasseien">
+<input id="pp" placeholder="Platines">
+<input id="pm" placeholder="Mosaic">
+<input id="pj" placeholder="Juntas">
+<input id="pd" placeholder="Day">
+<input id="ph" placeholder="Meio dia">
 
 <button class="btn orange" onclick="savePrices()">Guardar preços</button>
 
@@ -147,23 +161,23 @@ input,select{
 </div>
 
 <div class="nav">
-<button onclick="showPage('home')">📅</button>
-<button onclick="showPage('add')">➕</button>
-<button onclick="showPage('settings')">⚙️</button>
+<button onclick="showPage('home',this)" class="activeNav">📅</button>
+<button onclick="showPage('add',this)">➕</button>
+<button onclick="showPage('settings',this)">⚙️</button>
 </div>
 
 <script>
 
-let selectedDay = 1;
+let selectedDay=1;
 
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded",()=>{
 
 const months=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 months.forEach((m,i)=>{
-  let opt=document.createElement("option");
-  opt.value=i;
-  opt.text=m;
-  month.appendChild(opt);
+ let o=document.createElement("option");
+ o.value=i;
+ o.text=m;
+ month.appendChild(o);
 });
 
 month.value=new Date().getMonth();
@@ -173,85 +187,98 @@ updateTotal();
 
 });
 
+/* CALENDAR */
 function generateCalendar(){
-  calendar.innerHTML="";
 
-  let data = JSON.parse(localStorage.getItem("days")||"{}");
+calendar.innerHTML="";
+let data=JSON.parse(localStorage.getItem("days")||"{}");
 
-  for(let i=1;i<=31;i++){
-    let d=document.createElement("div");
-    d.className="day";
-    d.innerText=i;
+for(let i=1;i<=31;i++){
 
-    if(data[i]){
-      d.classList.add("activeDay");
-    }
+ let d=document.createElement("div");
+ d.className="day";
+ d.innerText=i;
 
-    d.onclick=()=>{
-      selectedDay=i;
-      showPage("add");
-    }
+ if(data[i]){
+   d.classList.add(data[i].type);
+ }
 
-    calendar.appendChild(d);
-  }
+ d.onclick=()=>{
+   selectedDay=i;
+   showPage("add");
+ };
+
+ calendar.appendChild(d);
 }
 
+}
+
+/* SAVE PRICES */
 function savePrices(){
-  let prices={
-    k:+p_k.value||0,
-    p:+p_p.value||0,
-    m:+p_m.value||0,
-    j:+p_j.value||0,
-    d:+p_d.value||0,
-    h:+p_h.value||0
-  };
-  localStorage.setItem("prices",JSON.stringify(prices));
-  alert("Preços guardados");
+ let p={
+  k:+pk.value||0,
+  p:+pp.value||0,
+  m:+pm.value||0,
+  j:+pj.value||0,
+  d:+pd.value||0,
+  h:+ph.value||0
+ };
+ localStorage.setItem("prices",JSON.stringify(p));
+ alert("Guardado");
 }
 
+/* SAVE DAY */
 function saveDay(){
 
 let prices=JSON.parse(localStorage.getItem("prices")||"{}");
 
 let total=0;
 let desc=[];
+let type="";
 
-if(kasseien.checked){
- total+=kasseien_m.value*prices.k;
- desc.push("Kasseien "+kasseien_m.value+"m");
+if(k.checked){
+ total+=k_m.value*prices.k;
+ desc.push("Kasseien "+k_m.value+"m");
+ type="k";
 }
 
-if(platines.checked){
- total+=platines_m.value*prices.p;
- desc.push("Platines "+platines_m.value+"m");
+if(p.checked){
+ total+=p_m.value*prices.p;
+ desc.push("Platines "+p_m.value+"m");
+ type="p";
 }
 
-if(mosaic.checked){
- total+=mosaic_m.value*prices.m;
- desc.push("Mosaic "+mosaic_m.value+"m");
+if(m.checked){
+ total+=m_m.value*prices.m;
+ desc.push("Mosaic "+m_m.value+"m");
+ type="m";
 }
 
-if(juntas.checked){
- total+=juntas_m.value*prices.j;
- desc.push("Juntas "+juntas_m.value+"m");
+if(j.checked){
+ total+=j_m.value*prices.j;
+ desc.push("Juntas "+j_m.value+"m");
+ type="j";
 }
 
-if(day.checked){
+if(d.checked){
  total+=prices.d;
  desc.push("Day");
+ type="d";
 }
 
-if(half.checked){
+if(h.checked){
  total+=prices.h;
  desc.push("Meio dia");
+ type="h";
 }
 
 let data=JSON.parse(localStorage.getItem("days")||"{}");
 
 data[selectedDay]={
-  local:local.value,
-  desc:desc.join(", "),
-  total:total
+ local:local.value,
+ desc:desc.join(", "),
+ total:total,
+ type:type
 };
 
 localStorage.setItem("days",JSON.stringify(data));
@@ -259,38 +286,45 @@ localStorage.setItem("days",JSON.stringify(data));
 generateCalendar();
 updateTotal();
 
-alert("Guardado!");
+alert("Guardado");
 showPage("home");
 
 }
 
-function updateTotal(){
-  let data=JSON.parse(localStorage.getItem("days")||"{}");
-  let t=0;
-
-  Object.values(data).forEach(d=>{
-    t+=d.total;
-  });
-
-  total.innerText=t;
+/* DELETE */
+function deleteDay(){
+ let data=JSON.parse(localStorage.getItem("days")||"{}");
+ delete data[selectedDay];
+ localStorage.setItem("days",JSON.stringify(data));
+ generateCalendar();
+ updateTotal();
+ alert("Apagado");
 }
 
+/* TOTAL */
+function updateTotal(){
+ let data=JSON.parse(localStorage.getItem("days")||"{}");
+ let t=0;
+ Object.values(data).forEach(d=>t+=d.total);
+ total.innerText=t;
+}
+
+/* PDF PRO */
 function exportPDF(){
 
 let data=JSON.parse(localStorage.getItem("days")||"{}");
 
 let text="RELATÓRIO\n\n";
-
 let total=0;
 
 for(let d in data){
-  text+=`Dia ${d} - ${data[d].local}\n`;
-  text+=`${data[d].desc}\n`;
-  text+=`Total: €${data[d].total}\n\n`;
-  total+=data[d].total;
+ text+=`Day ${d} - ${data[d].local}\n`;
+ text+=`${data[d].desc}\n`;
+ text+=`Total: €${data[d].total}\n\n`;
+ total+=data[d].total;
 }
 
-text+="TOTAL GERAL = €"+total;
+text+="TOTAL = €"+total;
 
 let blob=new Blob([text],{type:"text/plain"});
 let a=document.createElement("a");
@@ -299,9 +333,13 @@ a.download="relatorio.txt";
 a.click();
 }
 
-function showPage(p){
-  document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));
-  document.getElementById(p).classList.add("active");
+/* NAV */
+function showPage(p,btn){
+ document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));
+ document.getElementById(p).classList.add("active");
+
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("activeNav"));
+ if(btn) btn.classList.add("activeNav");
 }
 
 </script>

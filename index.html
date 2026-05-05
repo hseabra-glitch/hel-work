@@ -3,79 +3,118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Hell Work</title>
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="icon.png">
+
+<!-- PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 body{
-    margin:0;
-    font-family:-apple-system;
-    background:#000;
-    color:#fff;
+margin:0;
+font-family:-apple-system;
+background:#000;
+color:#fff;
 }
 
 h1{
-    text-align:center;
-    margin-top:20px;
+text-align:center;
+margin:20px 0;
 }
 
 .container{
-    padding:15px;
+padding:15px;
+padding-bottom:100px;
 }
 
-/* CALENDÁRIO */
+/* SELECT */
+select{
+width:100%;
+padding:10px;
+border-radius:12px;
+border:none;
+margin-bottom:10px;
+}
+
+/* TOTAL */
+.total{
+font-size:22px;
+margin:10px 0;
+}
+
+/* CALENDAR */
 .calendar{
-    display:grid;
-    grid-template-columns: repeat(7,1fr);
-    gap:8px;
-    margin-top:20px;
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:8px;
 }
 
 .day{
-    background:#222;
-    padding:15px;
-    text-align:center;
-    border-radius:10px;
+background:#222;
+padding:15px;
+border-radius:12px;
+text-align:center;
 }
 
 .active{
-    background:#00bcd4;
-}
-
-.filled{
-    background:#006064;
-}
-
-/* BOTÕES */
-button{
-    width:100%;
-    padding:15px;
-    border:none;
-    border-radius:12px;
-    margin-top:10px;
-    font-size:16px;
-}
-
-.add{
-    background:#00c853;
-}
-
-.pdf{
-    background:#2962ff;
+background:#00bcd4;
 }
 
 /* FORM */
 input{
-    width:100%;
-    padding:12px;
-    border-radius:10px;
-    border:none;
-    margin-top:5px;
+width:100%;
+padding:12px;
+border-radius:12px;
+border:none;
+margin-bottom:10px;
 }
 
-.section{
-    margin-top:15px;
+label{
+display:flex;
+align-items:center;
+margin:10px 0;
+}
+
+label input{
+width:auto;
+margin-right:10px;
+}
+
+/* BUTTONS */
+.btn{
+width:100%;
+padding:15px;
+border:none;
+border-radius:14px;
+font-size:16px;
+margin-top:10px;
+}
+
+.add{
+background:#00c853;
+color:#fff;
+}
+
+.pdf{
+background:#2962ff;
+color:#fff;
+}
+
+/* NAV */
+.nav{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:#111;
+display:flex;
+justify-content:space-around;
+padding:10px;
 }
 </style>
 </head>
@@ -86,174 +125,233 @@ input{
 
 <div class="container">
 
-<select id="month">
-<option>Janeiro</option>
-<option>Fevereiro</option>
-<option>Março</option>
-<option>Abril</option>
-<option>Maio</option>
-<option>Junho</option>
-<option>Julho</option>
-<option>Agosto</option>
-<option>Setembro</option>
-<option>Outubro</option>
-<option>Novembro</option>
-<option>Dezembro</option>
-</select>
+<select id="month"></select>
 
-<h2>💰 Total: € <span id="total">0</span></h2>
+<div class="total">💰 Total: € <span id="total">0</span></div>
 
 <div class="calendar" id="calendar"></div>
 
-<!-- FORM -->
-<div class="section">
-<input placeholder="Local" id="local">
+<hr>
+
+<input id="local" placeholder="Local">
 
 <label><input type="checkbox" id="kasseien"> Kasseien</label>
-<input placeholder="metros" id="kasseien_m">
+<input id="kasseien_m" placeholder="metros">
 
 <label><input type="checkbox" id="platines"> Platines</label>
-<input placeholder="metros" id="platines_m">
+<input id="platines_m" placeholder="metros">
 
 <label><input type="checkbox" id="mosaic"> Mosaic</label>
-<input placeholder="metros" id="mosaic_m">
+<input id="mosaic_m" placeholder="metros">
 
 <label><input type="checkbox" id="juntas"> Juntas</label>
-<input placeholder="metros" id="juntas_m">
+<input id="juntas_m" placeholder="metros">
 
 <label><input type="checkbox" id="day"> Day</label>
 <label><input type="checkbox" id="meio"> Meio dia</label>
 
-<button class="add" onclick="saveDay()">+ Adicionar</button>
-<button class="pdf" onclick="exportPDF()">📄 Exportar PDF</button>
+<button class="btn add" onclick="guardar()">+ Adicionar</button>
+<button class="btn pdf" onclick="exportPDF()">📄 Exportar PDF</button>
 
 </div>
 
+<div class="nav">
+<div>📅</div>
+<div>➕</div>
+<div>⚙️</div>
 </div>
 
 <script>
 
-let selectedDay = null;
-let data = JSON.parse(localStorage.getItem("workData")) || {};
-
-// PREÇOS BASE
-let prices = {
-    kasseien: 6.5,
-    platines: 7.5,
-    mosaic: 9,
-    juntas: 1,
-    day: 220,
-    meio: 110
+// PREÇOS
+let precos = {
+kasseien:6.5,
+platines:7.5,
+mosaic:9,
+juntas:1,
+day:220,
+meio:110
 };
 
+// MESES
+let meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+let monthSelect = document.getElementById("month");
+
+meses.forEach((m,i)=>{
+let op = document.createElement("option");
+op.value=i;
+op.textContent=m;
+monthSelect.appendChild(op);
+});
+
+let currentDay = null;
+
 // CALENDÁRIO
-function generateCalendar(){
-    let cal = document.getElementById("calendar");
-    cal.innerHTML = "";
+function renderCalendar(){
+let cal = document.getElementById("calendar");
+cal.innerHTML="";
 
-    for(let i=1;i<=31;i++){
-        let d = document.createElement("div");
-        d.className = "day";
-        d.innerText = i;
+for(let i=1;i<=31;i++){
+let d = document.createElement("div");
+d.className="day";
+d.innerText=i;
 
-        if(data[i]) d.classList.add("filled");
+d.onclick=()=>{
+currentDay=i;
+document.querySelectorAll(".day").forEach(x=>x.classList.remove("active"));
+d.classList.add("active");
+};
 
-        d.onclick = ()=>{
-            selectedDay = i;
-            document.querySelectorAll(".day").forEach(e=>e.classList.remove("active"));
-            d.classList.add("active");
-        };
-
-        cal.appendChild(d);
-    }
+cal.appendChild(d);
+}
 }
 
-// GUARDAR DIA
-function saveDay(){
-    if(!selectedDay) return alert("Escolhe um dia");
+renderCalendar();
 
-    let total = 0;
-    let desc = "";
+// GUARDAR
+function guardar(){
 
-    if(kasseien.checked){
-        let m = Number(kasseien_m.value || 0);
-        total += m * prices.kasseien;
-        desc += `${m}m kasseien\n`;
-    }
+if(!currentDay){
+alert("Seleciona um dia");
+return;
+}
 
-    if(platines.checked){
-        let m = Number(platines_m.value || 0);
-        total += m * prices.platines;
-        desc += `${m}m platines\n`;
-    }
+let total = 0;
+let desc = [];
 
-    if(mosaic.checked){
-        let m = Number(mosaic_m.value || 0);
-        total += m * prices.mosaic;
-        desc += `${m}m mosaic\n`;
-    }
+let k = document.getElementById("kasseien").checked;
+let km = parseFloat(document.getElementById("kasseien_m").value)||0;
 
-    if(juntas.checked){
-        let m = Number(juntas_m.value || 0);
-        total += m * prices.juntas;
-        desc += `${m}m juntas\n`;
-    }
+if(k){
+let val = km * precos.kasseien;
+total+=val;
+desc.push(km+"m Kasseien");
+}
 
-    if(day.checked){
-        total += prices.day;
-        desc += "day\n";
-    }
+let p = document.getElementById("platines").checked;
+let pm = parseFloat(document.getElementById("platines_m").value)||0;
 
-    if(meio.checked){
-        total += prices.meio;
-        desc += "meio dia\n";
-    }
+if(p){
+let val = pm * precos.platines;
+total+=val;
+desc.push(pm+"m Platines");
+}
 
-    data[selectedDay] = {
-        local: local.value,
-        desc: desc,
-        total: total
-    };
+let m = document.getElementById("mosaic").checked;
+let mm = parseFloat(document.getElementById("mosaic_m").value)||0;
 
-    localStorage.setItem("workData", JSON.stringify(data));
+if(m){
+let val = mm * precos.mosaic;
+total+=val;
+desc.push(mm+"m Mosaic");
+}
 
-    calculateTotal();
-    generateCalendar();
+let j = document.getElementById("juntas").checked;
+let jm = parseFloat(document.getElementById("juntas_m").value)||0;
+
+if(j){
+let val = jm * precos.juntas;
+total+=val;
+desc.push(jm+"m Juntas");
+}
+
+if(document.getElementById("day").checked){
+total+=precos.day;
+desc.push("Day");
+}
+
+if(document.getElementById("meio").checked){
+total+=precos.meio;
+desc.push("Meio dia");
+}
+
+let data = JSON.parse(localStorage.getItem("workData")) || {};
+
+data[currentDay] = {
+local:document.getElementById("local").value,
+total:total,
+desc:desc.join("\n")
+};
+
+localStorage.setItem("workData",JSON.stringify(data));
+
+updateTotal();
+
+alert("Guardado!");
 }
 
 // TOTAL
-function calculateTotal(){
-    let sum = 0;
-    Object.values(data).forEach(d=>sum+=d.total);
-    document.getElementById("total").innerText = sum;
+function updateTotal(){
+let data = JSON.parse(localStorage.getItem("workData")) || {};
+let t=0;
+
+Object.values(data).forEach(d=>{
+t+=d.total;
+});
+
+document.getElementById("total").innerText = t;
 }
+
+updateTotal();
 
 // PDF
 function exportPDF(){
-    const { jsPDF } = window.jspdf;
-    let doc = new jsPDF();
 
-    let y = 10;
-    let total = 0;
+const { jsPDF } = window.jspdf;
+let doc = new jsPDF();
 
-    for(let day in data){
-        let d = data[day];
+let data = JSON.parse(localStorage.getItem("workData")) || {};
 
-        doc.text(`Day ${day} - ${d.local} - €${d.total}`, 10, y);
-        y+=7;
+let y = 15;
 
-        total += d.total;
-    }
+doc.setFontSize(18);
+doc.text("HELL WORK", 10, y);
 
-    y+=10;
-    doc.text(`TOTAL = €${total}`, 10, y);
+y+=10;
+doc.setFontSize(12);
+doc.text("Relatório Mensal", 10, y);
 
-    doc.save("hellwork.pdf");
+y+=10;
+
+let totalGeral=0;
+
+Object.keys(data).sort((a,b)=>a-b).forEach(dia=>{
+
+let d = data[dia];
+
+doc.setFontSize(13);
+doc.text("Dia "+dia,10,y);
+
+y+=6;
+doc.setFontSize(11);
+doc.text("Local: "+(d.local||"-"),10,y);
+
+y+=6;
+
+d.desc.split("\n").forEach(l=>{
+doc.text("• "+l,10,y);
+y+=5;
+});
+
+doc.text("Total: €"+d.total,10,y);
+
+y+=8;
+totalGeral+=d.total;
+
+if(y>270){
+doc.addPage();
+y=20;
 }
 
-// INIT
-generateCalendar();
-calculateTotal();
+});
+
+y+=10;
+doc.setFontSize(14);
+doc.text("TOTAL: €"+totalGeral,10,y);
+
+doc.save("hellwork.pdf");
+}
 
 </script>
 

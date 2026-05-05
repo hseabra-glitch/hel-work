@@ -2,137 +2,116 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>Hell Work</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- APP -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="icon.png">
 
 <style>
 body{
-margin:0;
-font-family:-apple-system;
-background:#000;
-color:#fff;
+  margin:0;
+  font-family:-apple-system;
+  background:#000;
+  color:#fff;
 }
 
-/* PAGES */
-.page{
-display:none;
-padding:15px;
-padding-bottom:100px;
+h1{
+  text-align:center;
+  margin-top:20px;
 }
 
-.active{
-display:block;
+.container{
+  padding:15px;
 }
 
-/* HEADER */
-h1{text-align:center;}
-
-/* SELECT */
-select{
-width:100%;
-padding:12px;
-border-radius:12px;
-border:none;
-margin:10px 0;
+/* NAV */
+.nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  justify-content:space-around;
+  background:#111;
+  padding:10px;
 }
 
-/* TOTAL */
-.total{
-font-size:22px;
-margin:10px 0;
+.nav button{
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:20px;
 }
+
+/* PAGE */
+.page{display:none;}
+.active{display:block;}
 
 /* CALENDAR */
-.calendar{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-gap:8px;
-margin-top:10px;
+.grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:8px;
+  margin-top:20px;
 }
 
 .day{
-background:#222;
-padding:15px;
-border-radius:12px;
-text-align:center;
+  background:#222;
+  padding:15px;
+  text-align:center;
+  border-radius:10px;
 }
 
-.selected{background:#00bcd4;}
-.filled{background:#00c853;}
-
-/* FORM */
-input{
-width:100%;
-padding:12px;
-border-radius:12px;
-border:none;
-margin-bottom:10px;
-}
-
-label{
-display:flex;
-align-items:center;
-margin:10px 0;
-}
-
-label input{
-width:auto;
-margin-right:10px;
+/* INPUT */
+input, select{
+  width:100%;
+  padding:15px;
+  border-radius:10px;
+  border:none;
+  margin:10px 0;
+  font-size:16px;
 }
 
 /* BUTTON */
-button{
-width:100%;
-padding:15px;
-border:none;
-border-radius:12px;
-margin-top:10px;
-font-size:16px;
+.btn{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:12px;
+  font-size:18px;
+  margin-top:10px;
 }
 
 .green{background:#00c853;}
 .blue{background:#2962ff;}
 .orange{background:#ff9800;}
-
-/* NAV */
-.nav{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#111;
-display:flex;
-justify-content:space-around;
-padding:10px;
-}
-
-.nav div{
-font-size:22px;
-}
 </style>
 </head>
 
 <body>
 
-<!-- PAGE 1 -->
-<div id="page1" class="page active">
 <h1>🔥 Hell Work</h1>
+
+<div class="container">
+
+<!-- PAGE 1 -->
+<div id="home" class="page active">
 
 <select id="month"></select>
 
-<div class="total">💰 Total: € <span id="total">0</span></div>
+<h2>💰 Total: € <span id="total">0</span></h2>
 
-<div id="calendar" class="calendar"></div>
+<div id="calendar" class="grid"></div>
 
-<button class="blue" onclick="exportPDF()">📄 Exportar PDF</button>
+<button class="btn blue" onclick="exportPDF()">📄 Exportar PDF</button>
+
 </div>
 
 <!-- PAGE 2 -->
-<div id="page2" class="page">
-<h1>➕ Adicionar</h1>
+<div id="add" class="page">
 
 <input id="local" placeholder="Local">
 
@@ -149,226 +128,117 @@ font-size:22px;
 <input id="juntas_m" placeholder="metros">
 
 <label><input type="checkbox" id="day"> Day</label>
-<label><input type="checkbox" id="meio"> Meio dia</label>
 
-<button class="green" onclick="guardar()">Guardar</button>
+<label><input type="checkbox" id="half"> Meio dia</label>
+
+<button class="btn green" onclick="saveDay()">+ Adicionar</button>
+
 </div>
 
 <!-- PAGE 3 -->
-<div id="page3" class="page">
-<h1>⚙️ Preços</h1>
+<div id="settings" class="page">
 
-<input id="p_kasseien" value="6.5">
-<input id="p_platines" value="7.5">
-<input id="p_mosaic" value="9">
-<input id="p_juntas" value="1">
-<input id="p_day" value="220">
-<input id="p_meio" value="110">
+<h2>⚙️ Preços</h2>
 
-<button class="orange" onclick="guardarPrecos()">Guardar preços</button>
+<input id="p_kasseien" placeholder="Kasseien">
+<input id="p_platines" placeholder="Platines">
+<input id="p_mosaic" placeholder="Mosaic">
+<input id="p_juntas" placeholder="Juntas">
+<input id="p_day" placeholder="Day">
+<input id="p_half" placeholder="Meio dia">
+
+<button class="btn orange" onclick="savePrices()">Guardar preços</button>
+
+</div>
+
 </div>
 
 <!-- NAV -->
 <div class="nav">
-<div onclick="goPage(1)">📅</div>
-<div onclick="goPage(2)">➕</div>
-<div onclick="goPage(3)">⚙️</div>
+  <button onclick="showPage('home')">📅</button>
+  <button onclick="showPage('add')">➕</button>
+  <button onclick="showPage('settings')">⚙️</button>
 </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", function(){
 
-// NAV
-function goPage(n){
-document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-document.getElementById("page"+n).classList.add("active");
-}
+const months = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const monthSelect = document.getElementById("month");
 
-// PREÇOS
-let precos = JSON.parse(localStorage.getItem("precos")) || {
-kasseien:6.5,
-platines:7.5,
-mosaic:9,
-juntas:1,
-day:220,
-meio:110
-};
-
-// MESES
-let meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-let monthSelect=document.getElementById("month");
-
-meses.forEach((m,i)=>{
-let op=document.createElement("option");
-op.value=i;
-op.textContent=m;
-monthSelect.appendChild(op);
+months.forEach((m,i)=>{
+  let opt = document.createElement("option");
+  opt.value=i;
+  opt.text=m;
+  monthSelect.appendChild(opt);
 });
 
-// DIA ATUAL
-let currentDay=null;
+monthSelect.value = new Date().getMonth();
 
-// CALENDÁRIO
-function renderCalendar(){
+generateCalendar();
 
-let cal=document.getElementById("calendar");
-cal.innerHTML="";
-
-let data = JSON.parse(localStorage.getItem("workData")) || {};
-
-for(let i=1;i<=31;i++){
-
-let d=document.createElement("div");
-d.className="day";
-d.innerText=i;
-
-if(data[i]) d.classList.add("filled");
-
-d.onclick=()=>{
-currentDay=i;
-document.querySelectorAll(".day").forEach(x=>x.classList.remove("selected"));
-d.classList.add("selected");
-goPage(2);
-};
-
-cal.appendChild(d);
-}
-
-}
-
-// TOTAL
-function updateTotal(){
-let data = JSON.parse(localStorage.getItem("workData")) || {};
-let total=0;
-
-Object.values(data).forEach(d=>{
-total+=d.total;
 });
 
-document.getElementById("total").innerText=total;
+function generateCalendar(){
+  let cal = document.getElementById("calendar");
+  cal.innerHTML="";
+
+  for(let i=1;i<=31;i++){
+    let d = document.createElement("div");
+    d.className="day";
+    d.innerText=i;
+    cal.appendChild(d);
+  }
 }
 
-// GUARDAR
-function guardar(){
-
-if(!currentDay){
-alert("Seleciona um dia");
-return;
+function showPage(p){
+  document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));
+  document.getElementById(p).classList.add("active");
 }
 
-let total=0;
-let desc=[];
-
-let km=parseFloat(kasseien_m.value)||0;
-if(kasseien.checked){
-total+=km*precos.kasseien;
-desc.push(km+"m Kasseien");
+function savePrices(){
+  let prices={
+    k:parseFloat(p_kasseien.value)||0,
+    p:parseFloat(p_platines.value)||0,
+    m:parseFloat(p_mosaic.value)||0,
+    j:parseFloat(p_juntas.value)||0,
+    d:parseFloat(p_day.value)||0,
+    h:parseFloat(p_half.value)||0
+  };
+  localStorage.setItem("prices",JSON.stringify(prices));
+  alert("Guardado");
 }
 
-let pm=parseFloat(platines_m.value)||0;
-if(platines.checked){
-total+=pm*precos.platines;
-desc.push(pm+"m Platines");
+function saveDay(){
+  let prices=JSON.parse(localStorage.getItem("prices")||"{}");
+
+  let total=0;
+
+  if(kasseien.checked) total += (kasseien_m.value||0)*prices.k;
+  if(platines.checked) total += (platines_m.value||0)*prices.p;
+  if(mosaic.checked) total += (mosaic_m.value||0)*prices.m;
+  if(juntas.checked) total += (juntas_m.value||0)*prices.j;
+  if(day.checked) total += prices.d;
+  if(half.checked) total += prices.h;
+
+  let t = parseFloat(localStorage.getItem("total")||0);
+  t += total;
+  localStorage.setItem("total",t);
+
+  document.getElementById("total").innerText=t;
+  alert("Dia guardado");
 }
 
-let mm=parseFloat(mosaic_m.value)||0;
-if(mosaic.checked){
-total+=mm*precos.mosaic;
-desc.push(mm+"m Mosaic");
-}
-
-let jm=parseFloat(juntas_m.value)||0;
-if(juntas.checked){
-total+=jm*precos.juntas;
-desc.push(jm+"m Juntas");
-}
-
-if(day.checked){
-total+=precos.day;
-desc.push("Day");
-}
-
-if(meio.checked){
-total+=precos.meio;
-desc.push("Meio dia");
-}
-
-let data = JSON.parse(localStorage.getItem("workData")) || {};
-
-data[currentDay]={
-local:local.value,
-total,
-desc
-};
-
-localStorage.setItem("workData",JSON.stringify(data));
-
-renderCalendar();
-updateTotal();
-
-goPage(1);
-}
-
-// PREÇOS
-function guardarPrecos(){
-
-precos={
-kasseien:parseFloat(p_kasseien.value),
-platines:parseFloat(p_platines.value),
-mosaic:parseFloat(p_mosaic.value),
-juntas:parseFloat(p_juntas.value),
-day:parseFloat(p_day.value),
-meio:parseFloat(p_meio.value)
-};
-
-localStorage.setItem("precos",JSON.stringify(precos));
-
-alert("Guardado!");
-}
-
-// PDF
 function exportPDF(){
+  let t = localStorage.getItem("total")||0;
+  let txt = "TOTAL = € "+t;
 
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-
-let data = JSON.parse(localStorage.getItem("workData")) || {};
-
-let y=10;
-let total=0;
-
-Object.keys(data).sort((a,b)=>a-b).forEach(dia=>{
-
-let d=data[dia];
-
-doc.text("Dia "+dia+" - "+(d.local||""),10,y);
-y+=6;
-
-d.desc.forEach(l=>{
-doc.text("- "+l,10,y);
-y+=5;
-});
-
-doc.text("€"+d.total,10,y);
-y+=10;
-
-total+=d.total;
-
-if(y>270){
-doc.addPage();
-y=10;
+  let blob = new Blob([txt], {type:"text/plain"});
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "trabalho.txt";
+  a.click();
 }
-
-});
-
-doc.text("TOTAL: €"+total,10,y+10);
-
-doc.save("hellwork.pdf");
-}
-
-// INIT
-renderCalendar();
-updateTotal();
-
 </script>
 
 </body>

@@ -6,12 +6,10 @@
 
 <title>Hell Work</title>
 
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon.png">
 
-<!-- PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -22,29 +20,18 @@ background:#000;
 color:#fff;
 }
 
-h1{
-text-align:center;
-margin:20px 0;
-}
-
-.container{
+.page{
+display:none;
 padding:15px;
 padding-bottom:100px;
 }
 
-/* SELECT */
-select{
-width:100%;
-padding:10px;
-border-radius:12px;
-border:none;
-margin-bottom:10px;
+.activePage{
+display:block;
 }
 
-/* TOTAL */
-.total{
-font-size:22px;
-margin:10px 0;
+h1{
+text-align:center;
 }
 
 /* CALENDAR */
@@ -61,11 +48,15 @@ border-radius:12px;
 text-align:center;
 }
 
-.active{
+.selected{
 background:#00bcd4;
 }
 
-/* FORM */
+.filled{
+background:#00c853;
+}
+
+/* INPUTS */
 input{
 width:100%;
 padding:12px;
@@ -85,25 +76,27 @@ width:auto;
 margin-right:10px;
 }
 
+select{
+width:100%;
+padding:10px;
+border-radius:12px;
+border:none;
+margin-bottom:10px;
+}
+
 /* BUTTONS */
-.btn{
+button{
 width:100%;
 padding:15px;
 border:none;
-border-radius:14px;
-font-size:16px;
+border-radius:12px;
 margin-top:10px;
+font-size:16px;
 }
 
-.add{
-background:#00c853;
-color:#fff;
-}
-
-.pdf{
-background:#2962ff;
-color:#fff;
-}
+.green{background:#00c853;}
+.blue{background:#2962ff;}
+.orange{background:#ff9800;}
 
 /* NAV */
 .nav{
@@ -116,22 +109,31 @@ display:flex;
 justify-content:space-around;
 padding:10px;
 }
+
+.nav div{
+font-size:20px;
+}
 </style>
 </head>
 
 <body>
 
+<!-- PAGE 1 -->
+<div id="page1" class="page activePage">
 <h1>🔥 Hell Work</h1>
-
-<div class="container">
 
 <select id="month"></select>
 
-<div class="total">💰 Total: € <span id="total">0</span></div>
+<h2>💰 Total: € <span id="total">0</span></h2>
 
 <div class="calendar" id="calendar"></div>
 
-<hr>
+<button class="blue" onclick="exportPDF()">📄 Exportar PDF</button>
+</div>
+
+<!-- PAGE 2 -->
+<div id="page2" class="page">
+<h1>➕ Adicionar</h1>
 
 <input id="local" placeholder="Local">
 
@@ -150,21 +152,40 @@ padding:10px;
 <label><input type="checkbox" id="day"> Day</label>
 <label><input type="checkbox" id="meio"> Meio dia</label>
 
-<button class="btn add" onclick="guardar()">+ Adicionar</button>
-<button class="btn pdf" onclick="exportPDF()">📄 Exportar PDF</button>
-
+<button class="green" onclick="guardar()">Guardar</button>
 </div>
 
+<!-- PAGE 3 -->
+<div id="page3" class="page">
+<h1>⚙️ Preços</h1>
+
+<input id="p_kasseien" value="6.5">
+<input id="p_platines" value="7.5">
+<input id="p_mosaic" value="9">
+<input id="p_juntas" value="1">
+<input id="p_day" value="220">
+<input id="p_meio" value="110">
+
+<button class="orange" onclick="guardarPrecos()">Guardar preços</button>
+</div>
+
+<!-- NAV -->
 <div class="nav">
-<div>📅</div>
-<div>➕</div>
-<div>⚙️</div>
+<div onclick="goPage(1)">📅</div>
+<div onclick="goPage(2)">➕</div>
+<div onclick="goPage(3)">⚙️</div>
 </div>
 
 <script>
 
+// NAV
+function goPage(n){
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("activePage"));
+document.getElementById("page"+n).classList.add("activePage");
+}
+
 // PREÇOS
-let precos = {
+let precos = JSON.parse(localStorage.getItem("precos")) || {
 kasseien:6.5,
 platines:7.5,
 mosaic:9,
@@ -175,32 +196,36 @@ meio:110
 
 // MESES
 let meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-
 let monthSelect = document.getElementById("month");
 
 meses.forEach((m,i)=>{
-let op = document.createElement("option");
+let op=document.createElement("option");
 op.value=i;
 op.textContent=m;
 monthSelect.appendChild(op);
 });
 
-let currentDay = null;
+let currentDay=null;
 
-// CALENDÁRIO
+// CALENDAR
 function renderCalendar(){
-let cal = document.getElementById("calendar");
+let cal=document.getElementById("calendar");
 cal.innerHTML="";
 
+let data = JSON.parse(localStorage.getItem("workData")) || {};
+
 for(let i=1;i<=31;i++){
-let d = document.createElement("div");
+let d=document.createElement("div");
 d.className="day";
 d.innerText=i;
 
+if(data[i]) d.classList.add("filled");
+
 d.onclick=()=>{
 currentDay=i;
-document.querySelectorAll(".day").forEach(x=>x.classList.remove("active"));
-d.classList.add("active");
+document.querySelectorAll(".day").forEach(x=>x.classList.remove("selected"));
+d.classList.add("selected");
+goPage(2);
 };
 
 cal.appendChild(d);
@@ -217,138 +242,91 @@ alert("Seleciona um dia");
 return;
 }
 
-let total = 0;
-let desc = [];
+let total=0;
+let desc=[];
 
-let k = document.getElementById("kasseien").checked;
-let km = parseFloat(document.getElementById("kasseien_m").value)||0;
+let km=parseFloat(kasseien_m.value)||0;
+if(kasseien.checked){ total+=km*precos.kasseien; desc.push(km+"m Kasseien"); }
 
-if(k){
-let val = km * precos.kasseien;
-total+=val;
-desc.push(km+"m Kasseien");
-}
+let pm=parseFloat(platines_m.value)||0;
+if(platines.checked){ total+=pm*precos.platines; desc.push(pm+"m Platines"); }
 
-let p = document.getElementById("platines").checked;
-let pm = parseFloat(document.getElementById("platines_m").value)||0;
+let mm=parseFloat(mosaic_m.value)||0;
+if(mosaic.checked){ total+=mm*precos.mosaic; desc.push(mm+"m Mosaic"); }
 
-if(p){
-let val = pm * precos.platines;
-total+=val;
-desc.push(pm+"m Platines");
-}
+let jm=parseFloat(juntas_m.value)||0;
+if(juntas.checked){ total+=jm*precos.juntas; desc.push(jm+"m Juntas"); }
 
-let m = document.getElementById("mosaic").checked;
-let mm = parseFloat(document.getElementById("mosaic_m").value)||0;
-
-if(m){
-let val = mm * precos.mosaic;
-total+=val;
-desc.push(mm+"m Mosaic");
-}
-
-let j = document.getElementById("juntas").checked;
-let jm = parseFloat(document.getElementById("juntas_m").value)||0;
-
-if(j){
-let val = jm * precos.juntas;
-total+=val;
-desc.push(jm+"m Juntas");
-}
-
-if(document.getElementById("day").checked){
-total+=precos.day;
-desc.push("Day");
-}
-
-if(document.getElementById("meio").checked){
-total+=precos.meio;
-desc.push("Meio dia");
-}
+if(day.checked){ total+=precos.day; desc.push("Day"); }
+if(meio.checked){ total+=precos.meio; desc.push("Meio dia"); }
 
 let data = JSON.parse(localStorage.getItem("workData")) || {};
 
-data[currentDay] = {
-local:document.getElementById("local").value,
-total:total,
-desc:desc.join("\n")
+data[currentDay]={
+local:local.value,
+total,
+desc
 };
 
 localStorage.setItem("workData",JSON.stringify(data));
 
 updateTotal();
-
-alert("Guardado!");
+renderCalendar();
+goPage(1);
 }
 
 // TOTAL
 function updateTotal(){
 let data = JSON.parse(localStorage.getItem("workData")) || {};
 let t=0;
-
-Object.values(data).forEach(d=>{
-t+=d.total;
-});
-
-document.getElementById("total").innerText = t;
+Object.values(data).forEach(d=>t+=d.total);
+document.getElementById("total").innerText=t;
 }
-
 updateTotal();
+
+// PREÇOS
+function guardarPrecos(){
+precos={
+kasseien:parseFloat(p_kasseien.value),
+platines:parseFloat(p_platines.value),
+mosaic:parseFloat(p_mosaic.value),
+juntas:parseFloat(p_juntas.value),
+day:parseFloat(p_day.value),
+meio:parseFloat(p_meio.value)
+};
+
+localStorage.setItem("precos",JSON.stringify(precos));
+alert("Guardado!");
+}
 
 // PDF
 function exportPDF(){
-
 const { jsPDF } = window.jspdf;
-let doc = new jsPDF();
+let doc=new jsPDF();
 
 let data = JSON.parse(localStorage.getItem("workData")) || {};
 
-let y = 15;
+let y=10;
+let total=0;
 
-doc.setFontSize(18);
-doc.text("HELL WORK", 10, y);
+Object.keys(data).forEach(dia=>{
+let d=data[dia];
 
-y+=10;
-doc.setFontSize(12);
-doc.text("Relatório Mensal", 10, y);
-
-y+=10;
-
-let totalGeral=0;
-
-Object.keys(data).sort((a,b)=>a-b).forEach(dia=>{
-
-let d = data[dia];
-
-doc.setFontSize(13);
-doc.text("Dia "+dia,10,y);
-
-y+=6;
-doc.setFontSize(11);
-doc.text("Local: "+(d.local||"-"),10,y);
-
+doc.text("Dia "+dia+" - "+d.local,10,y);
 y+=6;
 
-d.desc.split("\n").forEach(l=>{
-doc.text("• "+l,10,y);
+d.desc.forEach(l=>{
+doc.text("- "+l,10,y);
 y+=5;
 });
 
-doc.text("Total: €"+d.total,10,y);
+doc.text("€"+d.total,10,y);
+y+=10;
 
-y+=8;
-totalGeral+=d.total;
-
-if(y>270){
-doc.addPage();
-y=20;
-}
-
+total+=d.total;
 });
 
-y+=10;
-doc.setFontSize(14);
-doc.text("TOTAL: €"+totalGeral,10,y);
+doc.text("TOTAL: €"+total,10,y+10);
 
 doc.save("hellwork.pdf");
 }

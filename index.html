@@ -6,10 +6,9 @@
 
 <title>Hell Work</title>
 
-<!-- APP -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#000000">
 
 <style>
 body{
@@ -19,16 +18,13 @@ body{
   color:#fff;
 }
 
-h1{
-  text-align:center;
-  margin-top:20px;
-}
+h1{text-align:center;}
 
-.container{
-  padding:15px;
-}
+.container{padding:15px;}
 
-/* NAV */
+.page{display:none;}
+.active{display:block;}
+
 .nav{
   position:fixed;
   bottom:0;
@@ -46,16 +42,12 @@ h1{
   font-size:20px;
 }
 
-/* PAGE */
-.page{display:none;}
-.active{display:block;}
-
 /* CALENDAR */
 .grid{
   display:grid;
   grid-template-columns:repeat(7,1fr);
   gap:8px;
-  margin-top:20px;
+  margin-top:15px;
 }
 
 .day{
@@ -65,29 +57,31 @@ h1{
   border-radius:10px;
 }
 
+.day.activeDay{
+  background:#00c853;
+}
+
 /* INPUT */
-input, select{
+input,select{
   width:100%;
   padding:15px;
   border-radius:10px;
   border:none;
   margin:10px 0;
-  font-size:16px;
 }
 
-/* BUTTON */
 .btn{
   width:100%;
   padding:15px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   font-size:18px;
-  margin-top:10px;
 }
 
 .green{background:#00c853;}
 .blue{background:#2962ff;}
 .orange{background:#ff9800;}
+
 </style>
 </head>
 
@@ -97,7 +91,7 @@ input, select{
 
 <div class="container">
 
-<!-- PAGE 1 -->
+<!-- HOME -->
 <div id="home" class="page active">
 
 <select id="month"></select>
@@ -110,7 +104,7 @@ input, select{
 
 </div>
 
-<!-- PAGE 2 -->
+<!-- ADD -->
 <div id="add" class="page">
 
 <input id="local" placeholder="Local">
@@ -128,24 +122,23 @@ input, select{
 <input id="juntas_m" placeholder="metros">
 
 <label><input type="checkbox" id="day"> Day</label>
-
 <label><input type="checkbox" id="half"> Meio dia</label>
 
-<button class="btn green" onclick="saveDay()">+ Adicionar</button>
+<button class="btn green" onclick="saveDay()">Guardar dia</button>
 
 </div>
 
-<!-- PAGE 3 -->
+<!-- SETTINGS -->
 <div id="settings" class="page">
 
 <h2>⚙️ Preços</h2>
 
-<input id="p_kasseien" placeholder="Kasseien">
-<input id="p_platines" placeholder="Platines">
-<input id="p_mosaic" placeholder="Mosaic">
-<input id="p_juntas" placeholder="Juntas">
-<input id="p_day" placeholder="Day">
-<input id="p_half" placeholder="Meio dia">
+<input id="p_k" placeholder="Kasseien">
+<input id="p_p" placeholder="Platines">
+<input id="p_m" placeholder="Mosaic">
+<input id="p_j" placeholder="Juntas">
+<input id="p_d" placeholder="Day">
+<input id="p_h" placeholder="Meio dia">
 
 <button class="btn orange" onclick="savePrices()">Guardar preços</button>
 
@@ -153,92 +146,164 @@ input, select{
 
 </div>
 
-<!-- NAV -->
 <div class="nav">
-  <button onclick="showPage('home')">📅</button>
-  <button onclick="showPage('add')">➕</button>
-  <button onclick="showPage('settings')">⚙️</button>
+<button onclick="showPage('home')">📅</button>
+<button onclick="showPage('add')">➕</button>
+<button onclick="showPage('settings')">⚙️</button>
 </div>
 
 <script>
+
+let selectedDay = 1;
+
 document.addEventListener("DOMContentLoaded", function(){
 
-const months = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const monthSelect = document.getElementById("month");
-
+const months=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 months.forEach((m,i)=>{
-  let opt = document.createElement("option");
+  let opt=document.createElement("option");
   opt.value=i;
   opt.text=m;
-  monthSelect.appendChild(opt);
+  month.appendChild(opt);
 });
 
-monthSelect.value = new Date().getMonth();
+month.value=new Date().getMonth();
 
 generateCalendar();
+updateTotal();
 
 });
 
 function generateCalendar(){
-  let cal = document.getElementById("calendar");
-  cal.innerHTML="";
+  calendar.innerHTML="";
+
+  let data = JSON.parse(localStorage.getItem("days")||"{}");
 
   for(let i=1;i<=31;i++){
-    let d = document.createElement("div");
+    let d=document.createElement("div");
     d.className="day";
     d.innerText=i;
-    cal.appendChild(d);
-  }
-}
 
-function showPage(p){
-  document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));
-  document.getElementById(p).classList.add("active");
+    if(data[i]){
+      d.classList.add("activeDay");
+    }
+
+    d.onclick=()=>{
+      selectedDay=i;
+      showPage("add");
+    }
+
+    calendar.appendChild(d);
+  }
 }
 
 function savePrices(){
   let prices={
-    k:parseFloat(p_kasseien.value)||0,
-    p:parseFloat(p_platines.value)||0,
-    m:parseFloat(p_mosaic.value)||0,
-    j:parseFloat(p_juntas.value)||0,
-    d:parseFloat(p_day.value)||0,
-    h:parseFloat(p_half.value)||0
+    k:+p_k.value||0,
+    p:+p_p.value||0,
+    m:+p_m.value||0,
+    j:+p_j.value||0,
+    d:+p_d.value||0,
+    h:+p_h.value||0
   };
   localStorage.setItem("prices",JSON.stringify(prices));
-  alert("Guardado");
+  alert("Preços guardados");
 }
 
 function saveDay(){
-  let prices=JSON.parse(localStorage.getItem("prices")||"{}");
 
-  let total=0;
+let prices=JSON.parse(localStorage.getItem("prices")||"{}");
 
-  if(kasseien.checked) total += (kasseien_m.value||0)*prices.k;
-  if(platines.checked) total += (platines_m.value||0)*prices.p;
-  if(mosaic.checked) total += (mosaic_m.value||0)*prices.m;
-  if(juntas.checked) total += (juntas_m.value||0)*prices.j;
-  if(day.checked) total += prices.d;
-  if(half.checked) total += prices.h;
+let total=0;
+let desc=[];
 
-  let t = parseFloat(localStorage.getItem("total")||0);
-  t += total;
-  localStorage.setItem("total",t);
+if(kasseien.checked){
+ total+=kasseien_m.value*prices.k;
+ desc.push("Kasseien "+kasseien_m.value+"m");
+}
 
-  document.getElementById("total").innerText=t;
-  alert("Dia guardado");
+if(platines.checked){
+ total+=platines_m.value*prices.p;
+ desc.push("Platines "+platines_m.value+"m");
+}
+
+if(mosaic.checked){
+ total+=mosaic_m.value*prices.m;
+ desc.push("Mosaic "+mosaic_m.value+"m");
+}
+
+if(juntas.checked){
+ total+=juntas_m.value*prices.j;
+ desc.push("Juntas "+juntas_m.value+"m");
+}
+
+if(day.checked){
+ total+=prices.d;
+ desc.push("Day");
+}
+
+if(half.checked){
+ total+=prices.h;
+ desc.push("Meio dia");
+}
+
+let data=JSON.parse(localStorage.getItem("days")||"{}");
+
+data[selectedDay]={
+  local:local.value,
+  desc:desc.join(", "),
+  total:total
+};
+
+localStorage.setItem("days",JSON.stringify(data));
+
+generateCalendar();
+updateTotal();
+
+alert("Guardado!");
+showPage("home");
+
+}
+
+function updateTotal(){
+  let data=JSON.parse(localStorage.getItem("days")||"{}");
+  let t=0;
+
+  Object.values(data).forEach(d=>{
+    t+=d.total;
+  });
+
+  total.innerText=t;
 }
 
 function exportPDF(){
-  let t = localStorage.getItem("total")||0;
-  let txt = "TOTAL = € "+t;
 
-  let blob = new Blob([txt], {type:"text/plain"});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "trabalho.txt";
-  a.click();
+let data=JSON.parse(localStorage.getItem("days")||"{}");
+
+let text="RELATÓRIO\n\n";
+
+let total=0;
+
+for(let d in data){
+  text+=`Dia ${d} - ${data[d].local}\n`;
+  text+=`${data[d].desc}\n`;
+  text+=`Total: €${data[d].total}\n\n`;
+  total+=data[d].total;
 }
+
+text+="TOTAL GERAL = €"+total;
+
+let blob=new Blob([text],{type:"text/plain"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="relatorio.txt";
+a.click();
+}
+
+function showPage(p){
+  document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));
+  document.getElementById(p).classList.add("active");
+}
+
 </script>
 
 </body>
